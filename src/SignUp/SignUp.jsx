@@ -211,21 +211,21 @@ const SignUp = () => {
                             </div>
 
                             {/* Captcha Row */}
-                            <div className="flex items-stretch gap-3 p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-xl shadow-black/10 mt-1">
-                                <div className="shrink-0 bg-gray-900/60 backdrop-blur-sm p-1 rounded-lg border border-white/10 shadow-inner h-[40px] flex items-center justify-center overflow-hidden min-w-[130px]">
-                                    <div className="scale-[0.80] origin-left -ml-2">
+                            <div className="flex items-center gap-4 p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-xl shadow-black/10 mt-1">
+                                <div className="shrink-0 bg-gray-900/60 backdrop-blur-sm p-3 rounded-xl border border-white/10 shadow-inner overflow-hidden">
+                                    <div className="scale-90 origin-left">
                                         <LoadCanvasTemplate />
                                     </div>
                                 </div>
-                                <div className="flex flex-col gap-1.5 flex-1 min-w-0 justify-center">
+                                <div className="flex-1 flex flex-col gap-2 min-w-0">
                                     <input
                                         type="text"
                                         id="signupCaptchaInput"
                                         placeholder="Type captcha"
-                                        className="w-full px-3 py-1.5 text-[11px] font-bold bg-white border-none rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-900 placeholder:text-gray-400 shadow-inner"
+                                        className="w-full px-4 py-3 text-[13px] font-bold bg-white border-none rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-900 placeholder:text-gray-400 shadow-inner transition-all"
                                     />
                                     <button type="button" onClick={handleValidateCaptcha}
-                                        className={`w-full py-1.5 text-[9px] font-black uppercase tracking-widest rounded-md transition-all shadow-sm ${captchaVerified ? 'bg-green-500 text-white' : 'bg-yellow-400 hover:bg-yellow-300 text-gray-900'}`}>
+                                        className={`w-full py-3 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all shadow-md active:scale-95 ${captchaVerified ? 'bg-green-500 text-white' : 'bg-yellow-400 hover:bg-yellow-300 text-gray-900'}`}>
                                         {captchaVerified ? '✓ Verified' : 'Verify'}
                                     </button>
                                 </div>

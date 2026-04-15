@@ -4,6 +4,7 @@ import { User, Mail, Shield, Calendar, Edit3, Check, X, Camera } from 'lucide-re
 import { AuthContext } from '../../Providers/AuthProvider';
 import useAdmin from '../../hooks/useAdmin';
 import Swal from 'sweetalert2';
+import ImageUploadField from '../../components/Dashboard/ImageUploadField';
 
 const Profile = () => {
   const { user, updateUserProfile } = useContext(AuthContext);
@@ -21,13 +22,14 @@ const Profile = () => {
       setEditing(false);
       Swal.fire({
         icon: 'success',
-        title: 'Profile Updated!',
+        title: 'Identity Synched',
         showConfirmButton: false,
         timer: 1800,
         background: '#fff',
+        customClass: { popup: 'rounded-3xl shadow-xl' }
       });
     } catch {
-      Swal.fire({ icon: 'error', title: 'Update Failed', confirmButtonColor: '#0A3D2A' });
+      Swal.fire({ icon: 'error', title: 'Action Failed', confirmButtonColor: '#e63946' });
     } finally {
       setSaving(false);
     }
@@ -37,66 +39,72 @@ const Profile = () => {
     ? new Date(user.metadata.creationTime).toLocaleDateString('en-BD', {
         year: 'numeric', month: 'long', day: 'numeric',
       })
-    : '—';
+    : 'Registry Start: —';
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8"
+      className="p-6 lg:p-12 font-['Poppins',sans-serif]"
     >
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto space-y-10">
         {/* Header */}
-        <div className="mb-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-[#0A3D2A] flex items-center justify-center">
-              <User className="h-5 w-5 text-white" />
-            </span>
-            My Profile
-          </h2>
-          <p className="text-gray-500 mt-1 ml-13">Manage your account information</p>
+        <div className="flex items-center gap-6">
+          <div className="w-16 h-16 rounded-[24px] bg-red-600 flex items-center justify-center shadow-2xl shadow-red-200">
+            <User className="h-8 w-8 text-white" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">Personnel Profile</h2>
+            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mt-1">Manage your administrative identity</p>
+          </div>
         </div>
 
         {/* Profile Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          {/* Cover */}
-          <div className="h-28 bg-gradient-to-r from-[#0A3D2A] via-[#116638] to-[#0A3D2A]" />
+        <div className="bg-white rounded-[40px] shadow-2xl border border-gray-50 overflow-hidden relative">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-yellow-400 opacity-30" />
+          
+          {/* Cover Area */}
+          <div className="h-40 bg-gradient-to-br from-red-600 via-red-700 to-black relative">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+            <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent" />
+          </div>
 
-          {/* Avatar & Name */}
-          <div className="px-6 pb-6">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-12 mb-6">
-              <div className="relative w-fit">
+          {/* Identity Section */}
+          <div className="px-8 pb-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 -mt-16 mb-10">
+              <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-yellow-400 rounded-[32px] blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
                 <img
-                  src={user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=0A3D2A&color=fff&size=128`}
+                  src={user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=e63946&color=fff&size=200`}
                   alt="Profile"
-                  className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl border-4 border-white shadow-lg object-cover"
+                  className="relative w-32 h-32 md:w-40 md:h-40 rounded-[32px] border-4 border-white shadow-2xl object-cover"
                   onError={(e) => {
-                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=0A3D2A&color=fff&size=128`;
+                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=e63946&color=fff&size=200`;
                   }}
                 />
                 {isAdmin && (
-                  <div className="absolute -top-1 -right-1 w-7 h-7 bg-red-600 rounded-full flex items-center justify-center border-2 border-white shadow">
-                    <Shield className="h-3.5 w-3.5 text-white" />
+                  <div className="absolute -top-2 -right-2 w-10 h-10 bg-yellow-400 rounded-2xl flex items-center justify-center border-4 border-white shadow-xl">
+                    <Shield className="h-5 w-5 text-red-700" />
                   </div>
                 )}
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-4">
                 {editing ? (
                   <>
                     <button
                       onClick={() => setEditing(false)}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 text-gray-600 text-sm font-medium hover:bg-gray-50 transition"
+                      className="px-6 py-3 rounded-2xl border border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-all active:scale-90"
                     >
-                      <X className="h-4 w-4" /> Cancel
+                      Abort
                     </button>
                     <button
                       onClick={handleSave}
                       disabled={saving}
-                      className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0A3D2A] text-white text-sm font-medium hover:bg-green-800 transition disabled:opacity-60"
+                      className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-red-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-100 active:scale-90 disabled:opacity-50"
                     >
                       <Check className="h-4 w-4" />
-                      {saving ? 'Saving…' : 'Save Changes'}
+                      {saving ? 'Syncing...' : 'Commit Changes'}
                     </button>
                   </>
                 ) : (
@@ -106,108 +114,82 @@ const Profile = () => {
                       setPhotoURL(user?.photoURL || '');
                       setEditing(true);
                     }}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition"
+                    className="flex items-center gap-2 px-8 py-4 rounded-2xl border border-gray-100 bg-white text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-red-600 hover:border-red-100 transition-all shadow-lg shadow-gray-100 active:scale-95"
                   >
-                    <Edit3 className="h-4 w-4" /> Edit Profile
+                    <Edit3 className="h-4 w-4" /> Refine Identity
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Name & Role */}
+            {/* Editable Content */}
             {editing ? (
-              <div className="space-y-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                 <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Display Name</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Display Identity</label>
                   <input
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3D2A] focus:border-transparent"
-                    placeholder="Your full name"
+                    className="w-full px-6 py-4 rounded-2xl border border-gray-100 text-sm font-bold text-gray-800 focus:outline-none focus:ring-4 focus:ring-red-50 focus:border-red-600 transition-all"
+                    placeholder="Your Full Name"
                   />
                 </div>
-                <div>
-                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 block">Photo URL</label>
-                  <div className="flex gap-2 items-center">
-                    <Camera className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                    <input
-                      type="url"
-                      value={photoURL}
-                      onChange={(e) => setPhotoURL(e.target.value)}
-                      className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-[#0A3D2A]"
-                      placeholder="https://..."
-                    />
-                  </div>
-                </div>
+                <ImageUploadField 
+                  label="Visual Endpoint (Avatar)"
+                  value={photoURL} 
+                  onChange={(url) => setPhotoURL(url)} 
+                  placeholder="https://visuals..." 
+                />
               </div>
             ) : (
-              <div className="mb-6">
-                <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
-                  {user?.displayName || 'User'}
+              <div className="mb-10">
+                <h3 className="text-4xl font-black text-gray-900 tracking-tighter uppercase">
+                  {user?.displayName || 'Unauthorized User'}
                 </h3>
-                {isAdmin && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-700 border border-red-200 rounded-full text-xs font-semibold">
-                    <Shield className="h-3 w-3" /> Admin
+                <div className="mt-4 flex flex-wrap gap-3">
+                  {isAdmin && (
+                    <span className="inline-flex items-center gap-2 px-5 py-2 bg-red-600 text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-red-100">
+                      <Shield className="h-3.5 w-3.5" /> High Command
+                    </span>
+                  )}
+                  <span className="inline-flex items-center gap-2 px-5 py-2 bg-yellow-400 text-red-900 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-yellow-100">
+                    Verified Agent
                   </span>
-                )}
+                </div>
               </div>
             )}
 
-            {/* Info Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                <div className="w-10 h-10 rounded-lg bg-[#0A3D2A]/10 flex items-center justify-center flex-shrink-0">
-                  <Mail className="h-5 w-5 text-[#0A3D2A]" />
+            {/* Metric Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                { label: 'Transmission', value: user?.email, icon: Mail, color: 'text-red-500', bg: 'bg-red-50' },
+                { label: 'Operational Role', value: isAdmin ? 'Administrator' : 'Client', icon: Shield, color: 'text-yellow-600', bg: 'bg-yellow-50' },
+                { label: 'Registry Date', value: joinDate, icon: Calendar, color: 'text-gray-900', bg: 'bg-gray-50' },
+                { label: 'Provider', value: user?.providerData?.[0]?.providerId === 'google.com' ? 'Google Cloud' : 'Native Auth', icon: User, color: 'text-gray-400', bg: 'bg-gray-50' },
+              ].map((m, i) => (
+                <div key={i} className={`${m.bg} p-6 rounded-[32px] border border-white transition-all hover:scale-105 shadow-sm`}>
+                  <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center mb-4 shadow-sm">
+                    <m.icon className={`h-5 w-5 ${m.color}`} />
+                  </div>
+                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{m.label}</p>
+                  <p className="text-xs font-black text-gray-900 truncate uppercase tracking-tight">{m.value}</p>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Email</p>
-                  <p className="text-sm font-medium text-gray-800 truncate">{user?.email}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
-                  <Shield className="h-5 w-5 text-green-700" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Role</p>
-                  <p className="text-sm font-medium text-gray-800">{isAdmin ? 'Administrator' : 'Customer'}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
-                  <Calendar className="h-5 w-5 text-amber-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Member Since</p>
-                  <p className="text-sm font-medium text-gray-800">{joinDate}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
-                <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <User className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">Auth Provider</p>
-                  <p className="text-sm font-medium text-gray-800 capitalize">
-                    {user?.providerData?.[0]?.providerId === 'google.com' ? 'Google' : 'Email / Password'}
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Email verification notice */}
+        {/* Alerts */}
         {!user?.emailVerified && user?.providerData?.[0]?.providerId !== 'google.com' && (
-          <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3">
-            <span className="text-amber-600 text-xl">⚠️</span>
-            <p className="text-sm text-amber-800 font-medium">
-              Your email is not verified. Please check your inbox for a verification link.
-            </p>
+          <div className="p-6 bg-red-600 rounded-[32px] text-white flex items-center gap-6 shadow-2xl shadow-red-200">
+            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center animate-pulse">
+              <span className="text-2xl font-black">!</span>
+            </div>
+            <div>
+               <h4 className="font-black uppercase tracking-widest text-sm mb-1">Identity Pending Verification</h4>
+               <p className="text-[10px] font-bold opacity-80 max-w-lg">Your contact endpoint is not verified. Check your registry inbox to finalize authentication.</p>
+            </div>
           </div>
         )}
       </div>
