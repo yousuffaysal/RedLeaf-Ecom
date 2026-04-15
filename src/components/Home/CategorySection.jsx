@@ -5,13 +5,13 @@ import useAxiosPublic from '../../hooks/useAxiosPublic';
 import ProductCard from '../Shared/ProductCard';
 import { Loader2, ChevronRight } from 'lucide-react';
 
-const PopularProducts = () => {
+const CategorySection = ({ title, categorySlug, bgStyle, accentFrom = '#dc2626', accentTo = '#ea580c' }) => {
   const axiosPublic = useAxiosPublic();
 
   const { data: result = { products: [] }, isLoading } = useQuery({
-    queryKey: ['popular-products'],
+    queryKey: ['category-products', categorySlug],
     queryFn: async () => {
-      const res = await axiosPublic.get('/products?sort=popular&limit=6');
+      const res = await axiosPublic.get(`/products?cat=${categorySlug}&limit=6`);
       return res.data || { products: [] };
     },
   });
@@ -19,28 +19,19 @@ const PopularProducts = () => {
   const products = result.products || [];
 
   return (
-    <section className="py-10 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #fff8f0 0%, #ffffff 50%, #f0fdf4 100%)' }}
-    >
-      {/* Decorative background circles */}
-      <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full opacity-[0.04] bg-red-500 pointer-events-none" />
-      <div className="absolute -bottom-16 -left-16 w-64 h-64 rounded-full opacity-[0.04] bg-[#0A3D2A] pointer-events-none" />
-
+    <section className="py-8 relative overflow-hidden" style={bgStyle || { background: '#ffffff' }}>
       <div className="w-full px-4 md:px-8">
         {/* Section Header */}
-        <div className="flex items-center justify-between mb-7">
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-8 rounded-full bg-gradient-to-b from-red-500 to-orange-400" />
-            <div>
-              <p className="text-xs font-bold text-orange-500 uppercase tracking-widest mb-0.5">Redleaf-BD</p>
-              <h3 className="text-xl font-extrabold text-gray-900 leading-none">
-                Most Popular Items
-              </h3>
-            </div>
+            <div className="w-1.5 h-8 rounded-full" style={{ background: `linear-gradient(to bottom, ${accentFrom}, ${accentTo})` }} />
+            <h3 className="text-xl font-extrabold text-gray-900 leading-none">
+              {title}
+            </h3>
           </div>
           <Link
-            to="/products"
-            className="flex items-center gap-1.5 text-sm font-bold text-white bg-gradient-to-r from-red-500 to-orange-400 hover:from-red-600 hover:to-orange-500 px-4 py-2 rounded-full transition-all shadow-md hover:shadow-lg"
+            to={`/products?cat=${categorySlug}`}
+            className="flex items-center gap-1.5 text-sm font-bold text-red-600 hover:text-red-700 transition-colors"
           >
             See All <ChevronRight className="w-4 h-4" />
           </Link>
@@ -63,8 +54,8 @@ const PopularProducts = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center text-gray-500 py-10 font-semibold bg-white/60 rounded-2xl border border-orange-100 p-8">
-            No popular products available right now.
+          <div className="text-center text-gray-400 py-8 font-semibold bg-white/60 rounded-2xl border border-gray-100 p-6">
+            Coming soon...
           </div>
         )}
       </div>
@@ -77,4 +68,4 @@ const PopularProducts = () => {
   );
 };
 
-export default PopularProducts;
+export default CategorySection;

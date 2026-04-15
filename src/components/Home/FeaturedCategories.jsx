@@ -1,60 +1,63 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { TbPlant, TbMeat, TbSoup, TbBottle, TbPepper, TbLeaf, TbCup, TbLemon, TbApple, TbDeviceLaptop, TbShirt, TbRun, TbGrain } from 'react-icons/tb';
+
+const IconWrapper = ({ children }) => (
+  <div className="text-red-500 bg-red-50 p-2 rounded-md flex items-center justify-center shrink-0">
+    {children}
+  </div>
+);
 
 const categories = [
-  { id: 1, name: 'Fresh Honey', icon: '🍯', bgColor: 'bg-amber-100', borderColor: 'border-amber-200' },
-  { id: 2, name: 'Premium Rice', icon: '🌾', bgColor: 'bg-green-100', borderColor: 'border-green-200' },
-  { id: 3, name: 'Mustard Oil', icon: '🛢️', bgColor: 'bg-yellow-100', borderColor: 'border-yellow-200' },
-  { id: 4, name: 'Organic Spices', icon: '🌶️', bgColor: 'bg-red-100', borderColor: 'border-red-200' },
-  { id: 5, name: 'Lentils & Pulses', icon: '🫘', bgColor: 'bg-orange-100', borderColor: 'border-orange-200' },
-  { id: 6, name: 'Poultry & Meat', icon: '🍗', bgColor: 'bg-rose-100', borderColor: 'border-rose-200' },
-  { id: 7, name: 'Dairy Items', icon: '🥛', bgColor: 'bg-blue-100', borderColor: 'border-blue-200' },
+  { id: 1,  name: 'Honey',               icon: <IconWrapper><TbSoup className="w-5 h-5 stroke-[2]" /></IconWrapper>,         slug: '/products?cat=honey',       bg: 'bg-amber-50',   border: 'border-amber-200' },
+  { id: 2,  name: 'Poultry & Meat',       icon: <IconWrapper><TbMeat className="w-5 h-5 stroke-[2]" /></IconWrapper>,         slug: '/products?cat=meat',        bg: 'bg-rose-50',    border: 'border-rose-200' },
+  { id: 3,  name: 'Rice & Grains',        icon: <IconWrapper><TbPlant className="w-5 h-5 stroke-[2]" /></IconWrapper>,        slug: '/products?cat=rice',        bg: 'bg-green-50',   border: 'border-green-200' },
+  { id: 4,  name: 'Oil',                  icon: <IconWrapper><TbBottle className="w-5 h-5 stroke-[2]" /></IconWrapper>,       slug: '/products?cat=oil',         bg: 'bg-yellow-50',  border: 'border-yellow-200' },
+  { id: 5,  name: 'Spices',               icon: <IconWrapper><TbPepper className="w-5 h-5 stroke-[2]" /></IconWrapper>,       slug: '/products?cat=spices',      bg: 'bg-red-50',     border: 'border-red-200' },
+  { id: 6,  name: 'Super Foods',          icon: <IconWrapper><TbLeaf className="w-5 h-5 stroke-[2]" /></IconWrapper>,         slug: '/products?cat=superfoods',  bg: 'bg-emerald-50', border: 'border-emerald-200' },
+  { id: 7,  name: 'Tea & Snacks',         icon: <IconWrapper><TbCup className="w-5 h-5 stroke-[2]" /></IconWrapper>,          slug: '/products?cat=tea',         bg: 'bg-orange-50',  border: 'border-orange-200' },
+  { id: 8,  name: 'Nuts & Dates',         icon: <IconWrapper><TbGrain className="w-5 h-5 stroke-[2]" /></IconWrapper>,      slug: '/products?cat=nuts',        bg: 'bg-amber-50',   border: 'border-amber-300' },
+  { id: 9,  name: 'Pickle',               icon: <IconWrapper><TbLemon className="w-5 h-5 stroke-[2]" /></IconWrapper>,        slug: '/products?cat=pickles',     bg: 'bg-lime-50',    border: 'border-lime-200' },
+  { id: 10, name: 'Fruits & Veg',         icon: <IconWrapper><TbApple className="w-5 h-5 stroke-[2]" /></IconWrapper>,        slug: '/products?cat=fruits',      bg: 'bg-green-50',   border: 'border-green-300' },
+  { id: 11, name: 'Electronics',          icon: <IconWrapper><TbDeviceLaptop className="w-5 h-5 stroke-[2]" /></IconWrapper>, slug: '/products?cat=electronics', bg: 'bg-blue-50',    border: 'border-blue-200' },
+  { id: 12, name: 'Shoes',                icon: <IconWrapper><TbRun className="w-5 h-5 stroke-[2]" /></IconWrapper>,          slug: '/products?cat=shoes',       bg: 'bg-purple-50',  border: 'border-purple-200' },
+  { id: 13, name: 'Clothing',             icon: <IconWrapper><TbShirt className="w-5 h-5 stroke-[2]" /></IconWrapper>,        slug: '/products?cat=clothing',    bg: 'bg-pink-50',    border: 'border-pink-200' },
 ];
 
 const FeaturedCategories = () => {
   return (
-    <section className="py-12 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
-          <h3 className="text-2xl font-bold text-gray-900 border-l-4 border-red-600 pl-3">
-            Shop by Category
+    // Only shown on mobile — on desktop the sidebar in HeroBanner handles category nav
+    <section className="py-6 bg-white lg:hidden border-b border-gray-100">
+      <div className="max-w-[1536px] w-full mx-auto px-4 md:px-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-extrabold text-gray-900 border-l-4 border-[#0A3D2A] pl-3 uppercase tracking-wide">
+            Categories
           </h3>
-          <button className="text-sm font-semibold text-green-700 hover:text-red-600 transition-colors">
+          <Link to="/products" className="text-xs font-semibold text-[#0A3D2A] hover:text-red-600">
             View All →
-          </button>
+          </Link>
         </div>
-
-        {/* Categories container with horizontal scroll hiding scrollbar */}
-        <div className="flex overflow-x-auto gap-4 pb-6 scrollbar-hide snap-x">
-          {categories.map((category, index) => (
+        <div className="grid grid-cols-4 sm:grid-cols-7 gap-3">
+          {categories.map((cat, index) => (
             <motion.div
-              key={category.id}
-              initial={{ opacity: 0, y: 20 }}
+              key={cat.id}
+              initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.4 }}
-              whileHover={{ y: -5, scale: 1.02 }}
-              className={`min-w-[120px] md:min-w-[140px] flex gap-3 flex-col items-center justify-center p-4 rounded-xl border-2 ${category.bgColor} ${category.borderColor} shadow-sm snap-start cursor-pointer hover:shadow-md transition-shadow group`}
+              transition={{ delay: index * 0.05, duration: 0.3 }}
+              whileHover={{ scale: 1.05 }}
             >
-              <div className="text-4xl group-hover:scale-110 transition-transform duration-300">
-                {category.icon}
-              </div>
-              <span className="text-sm font-semibold text-gray-800 text-center">
-                {category.name}
-              </span>
+              <Link
+                to={cat.slug}
+                className={`flex flex-col items-center justify-center p-3 rounded-xl border-2 ${cat.bg} ${cat.border} shadow-sm hover:shadow-md transition-all gap-1.5 group`}
+              >
+                <span className="group-hover:scale-110 transition-transform">{cat.icon}</span>
+                <span className="text-[10px] sm:text-xs font-semibold text-gray-700 text-center leading-tight">{cat.name}</span>
+              </Link>
             </motion.div>
           ))}
         </div>
-        
-        <style dangerouslySetInnerHTML={{__html: `
-          .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-          }
-          .scrollbar-hide {
-            -ms-overflow-style: none; /* IE and Edge */
-            scrollbar-width: none; /* Firefox */
-          }
-        `}} />
       </div>
     </section>
   );

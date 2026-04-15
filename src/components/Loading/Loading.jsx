@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import BIRST_LOGO from '../../assets/BIRST_LOGO.svg';
 
 const Loading = () => {
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -37,12 +36,11 @@ const Loading = () => {
       </div>
 
       <div className="relative z-10 text-center">
-        {/* Logo Animation */}
         <div className="mb-8">
           <div className="relative">
             <img
-              src={BIRST_LOGO}
-              alt="BIRSTBD Logo"
+              src="https://ik.imagekit.io/2lax2ytm2/Logo-v1%20(1).png"
+              alt="Redleaf-BD Logo"
               className="w-48 h-48 md:w-64 md:h-64 mx-auto object-contain animate-pulse"
             />
           </div>

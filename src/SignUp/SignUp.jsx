@@ -1,24 +1,20 @@
-
-
-
 import React, { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { Eye, EyeOff, ArrowRight, ShieldCheck, Leaf, Star, UploadCloud } from 'lucide-react';
 
 import SocialLogin from "../components/SocialLogin";
-
 import { loadCaptchaEnginge, LoadCanvasTemplate, validateCaptcha } from 'react-simple-captcha';
 import { getAuth, signOut } from 'firebase/auth';
 import { AuthContext } from "../Providers/AuthProvider";
 import useAxiosPublic from "../hooks/useAxiosPublic";
-import birstLogo from "../assets/BIRST_LOGO.svg";
-
 
 const SignUp = () => {
-    const [disabled, setDisabled] = useState(true);
     const [termsAccepted, setTermsAccepted] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [captchaVerified, setCaptchaVerified] = useState(false);
+
     const axiosPublic = useAxiosPublic();
     const { register, handleSubmit, reset, formState: { errors } } = useForm();
     const { createUser, updateUserProfile } = useContext(AuthContext);
@@ -28,350 +24,245 @@ const SignUp = () => {
     const image_hosting_key = import.meta.env.VITE_IMAGE_HOSTING_KEY;
     const image_hosting_api = `https://api.imgbb.com/1/upload?key=${image_hosting_key}`;
 
-    useEffect(() => {
-        loadCaptchaEnginge(6);
-    }, []);
+    useEffect(() => { loadCaptchaEnginge(6); }, []);
 
-    const handleValidateCaptcha = (element) => {
-        const captchaValue = element.value;
+    const handleValidateCaptcha = () => {
+        const captchaValue = document.getElementById('signupCaptchaInput')?.value;
         if (validateCaptcha(captchaValue)) {
-            setDisabled(false);
-            Swal.fire({
-                icon: 'success',
-                title: 'Captcha Validated!',
-                showConfirmButton: false,
-                timer: 1500
-            });
+            setCaptchaVerified(true);
+            Swal.fire({ icon: 'success', title: 'Verified!', showConfirmButton: false, timer: 1000 });
         } else {
-            setDisabled(true);
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Captcha',
-                text: 'Please try again',
-                confirmButtonText: 'Ok'
-            });
+            setCaptchaVerified(false);
+            Swal.fire({ icon: 'error', title: 'Wrong Captcha', confirmButtonColor: '#dc2626' });
         }
     };
 
     const handleImageUpload = async (photo) => {
         const formData = new FormData();
         formData.append('image', photo);
-
         try {
-            const response = await fetch(image_hosting_api, {
-                method: 'POST',
-                body: formData
-            });
+            const response = await fetch(image_hosting_api, { method: 'POST', body: formData });
             const data = await response.json();
             return data.data.url;
-        } catch (error) {
-            console.error('Image upload failed:', error);
-            return null;
-        }
+        } catch { return null; }
     };
 
     const onSubmit = async (data) => {
-        if (!termsAccepted) {
-            Swal.fire({
-                title: 'Terms & Conditions Required',
-                text: 'Please accept the terms and conditions to continue',
-                icon: 'warning',
-                confirmButtonText: 'Ok'
-            });
-            return;
-        }
+        if (!termsAccepted) { Swal.fire({ title: 'Agree to Terms', icon: 'warning', confirmButtonColor: '#dc2626' }); return; }
 
         let photoURL = data.photoURL;
         if (data.photo && data.photo[0]) {
             photoURL = await handleImageUpload(data.photo[0]);
-            if (!photoURL) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Image Upload Failed',
-                    text: 'Please try again or use a photo URL instead.'
-                });
-                return;
-            }
+            if (!photoURL) { Swal.fire({ icon: 'error', title: 'Image Upload Failed', confirmButtonColor: '#dc2626' }); return; }
         }
 
         try {
             const result = await createUser(data.email, data.password);
-            console.log("User Created:", result.user);
-
             await updateUserProfile(data.name, photoURL);
-            console.log("User profile info updated");
-
-            const userInfo = {
-                uid: result.user.uid,
-                name: data.name,
-                email: data.email,
-                photoURL: photoURL,
-                emailVerified: false
-            };
-
+            const userInfo = { uid: result.user.uid, name: data.name, email: data.email, photoURL, emailVerified: false };
             const res = await axiosPublic.post("/users", userInfo);
 
             if (res.data.insertedId) {
                 reset();
                 await signOut(auth);
-
                 await Swal.fire({
-                    title: 'Account Created Successfully!',
-                    html: `
-                        <div class="space-y-4">
-                            <div class="text-[#2E7D32]">
-                                <svg class="mx-auto h-16 w-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <p class="text-[#6B7280]">Please verify your email address:</p>
-                            <p class="font-semibold text-[#0A3D91]">${data.email}</p>
-                            <p class="text-sm text-[#6B7280] mt-2">A verification link has been sent to your email. Please verify your email to activate your account.</p>
-                            <p class="text-sm text-[#6B7280]">You cannot log in until your email is verified.</p>
-                        </div>
-                    `,
+                    title: 'Account Created!',
+                    text: `Check ${data.email} to verify before signing in.`,
                     icon: 'success',
-                    confirmButtonColor: '#0A3D91',
+                    confirmButtonColor: '#dc2626',
                     confirmButtonText: 'Go to Login',
-                    allowOutsideClick: false
                 });
-
                 navigate("/login");
             }
         } catch (error) {
-            console.error("Signup Error:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Signup Failed',
-                text: error.message,
-                confirmButtonColor: '#0A3D91'
-            });
+            Swal.fire({ icon: 'error', title: 'Signup Failed', text: error.message, confirmButtonColor: '#dc2626' });
         }
     };
 
     return (
-        <div className="min-h-screen w-full bg-gradient-to-br from-[#0A3D2A] to-green-900 flex fixed inset-0">
-            {/* Left Section with Illustration */}
-            <div className="hidden lg:flex lg:w-1/2 bg-white/5 items-center justify-center p-12 relative overflow-hidden backdrop-blur-sm">
-                <div className="max-w-lg relative z-10 text-center">
-                    {/* Logo */}
-                    <div className="mb-8">
-                        <div className="mx-auto mb-4 w-20 h-20 bg-red-600 rounded-full flex items-center justify-center shadow-lg outline-4 outline-white/20">
-                            <span className="font-bold text-white text-4xl">R</span>
+        <div className="h-screen w-screen flex overflow-hidden font-['Poppins',sans-serif]">
+
+            {/* ══ LEFT PANEL — White, Logo, Brand Story ══ */}
+            <div className="hidden lg:flex w-1/2 h-full flex-col relative overflow-hidden bg-white">
+
+                <div className="absolute inset-0"
+                    style={{
+                        backgroundImage: 'radial-gradient(circle, rgba(220,38,38,0.07) 1.5px, transparent 1.5px)',
+                        backgroundSize: '28px 28px'
+                    }}
+                />
+                <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-white via-white/80 to-transparent pointer-events-none" />
+                <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-red-50 blur-3xl opacity-60 pointer-events-none" />
+
+                <div className="relative z-10 flex flex-col h-full p-10 xl:p-12">
+
+                    <Link to="/" className="block">
+                        <img
+                            src="https://ik.imagekit.io/2lax2ytm2/Logo-v1%20(1).png"
+                            alt="Redleaf-BD"
+                            className="h-20 xl:h-24 w-auto object-contain"
+                        />
+                    </Link>
+
+                    <div className="flex-1 flex flex-col justify-center mt-6">
+                        <div className="mb-2 inline-flex items-center gap-2 bg-red-50 border border-red-100 text-red-600 text-xs font-bold px-3 py-1.5 rounded-full w-fit">
+                            <Leaf size={12} /><span>Join 10,000+ Happy Customers</span>
                         </div>
-                        <h2 className="text-4xl font-bold text-white text-center">
-                            Join <span className="text-red-500">Redleaf-BD</span>
-                        </h2>
+                        <h1 className="text-4xl xl:text-5xl font-black text-gray-900 leading-tight mt-3">
+                            Start Your<br/><span className="text-red-600">Fresh Journey</span>
+                        </h1>
+                        <p className="text-gray-500 mt-3 text-sm leading-relaxed max-w-xs">
+                            Create your account and get access to premium organic groceries delivered fresh to your home.
+                        </p>
+
+                        <div className="mt-6 flex flex-col gap-2.5">
+                            {[
+                                { icon: <ShieldCheck size={15} className="text-red-500" />, text: 'Formalin-free, certified products' },
+                                { icon: <Star size={15} className="text-yellow-500" />, text: 'Free delivery on first order' },
+                                { icon: <Leaf size={15} className="text-green-500" />, text: 'Directly sourced from trusted farmers' },
+                            ].map((item, i) => (
+                                <div key={i} className="flex items-center gap-2.5 text-sm text-gray-600 font-medium">
+                                    <div className="w-7 h-7 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">{item.icon}</div>
+                                    {item.text}
+                                </div>
+                            ))}
+                        </div>
                     </div>
 
-                    <p className="text-xl text-green-100 mb-8 leading-relaxed text-center font-medium">
-                        Your Daily source of<br className="hidden sm:inline" />Fresh & Organic Groceries
-                    </p>
-
-                    {/* Login Button */}
-                    <div className="text-center mt-12 bg-black/20 p-6 rounded-2xl border border-white/10 backdrop-blur-md">
-                        <p className="text-green-50 mb-4">Already have an account?</p>
-                        <Link
-                            to="/login"
-                            className="bg-white text-[#0A3D2A] hover:bg-green-50 font-bold px-8 py-3 rounded-xl transition-all shadow-lg inline-block"
-                        >
-                            Sign In Here
+                    <div className="mt-auto bg-gray-900 rounded-2xl p-5 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-20 h-20 bg-red-600 rounded-full blur-2xl opacity-30" />
+                        <p className="text-gray-400 text-xs font-semibold uppercase tracking-widest mb-1">Already a member?</p>
+                        <p className="text-white font-bold text-sm mb-3">Sign in to your account</p>
+                        <Link to="/login" className="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-gray-900 font-black text-sm px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-yellow-400/20">
+                            Sign In <ArrowRight size={15} />
                         </Link>
                     </div>
                 </div>
             </div>
 
-            {/* Right Section with Form */}
-            <div className="w-full lg:w-1/2 bg-white flex items-center justify-center p-6 overflow-y-auto rounded-l-3xl shadow-2xl">
-                <div className="w-full max-w-md space-y-8">
-                    {/* Header */}
-                    <div className="text-center mt-8">
-                        <div className="mx-auto mb-4 w-12 h-12 bg-red-600 rounded-full flex items-center justify-center lg:hidden shadow-md">
-                            <span className="font-bold text-white text-2xl">R</span>
-                        </div>
-                        <h1 className="text-3xl font-bold text-[#0A3D2A] mb-2">Create Account</h1>
-                        <p className="text-gray-500 font-medium">Sign up to get fresh groceries delivered to your door</p>
+            {/* ══ RIGHT PANEL — Red, Form (Compact) ══ */}
+            <div className="flex-1 h-full bg-gradient-to-br from-red-600 to-red-800 flex flex-col relative overflow-hidden">
+
+                <div className="absolute inset-0 pointer-events-none"
+                    style={{
+                        backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)',
+                        backgroundSize: '22px 22px'
+                    }}
+                />
+                <div className="absolute top-1/4 -right-24 w-72 h-72 bg-red-500 rounded-full blur-[100px] opacity-50 pointer-events-none" />
+                <div className="absolute bottom-10 -left-20 w-80 h-80 bg-red-900 rounded-full blur-[100px] opacity-50 pointer-events-none" />
+
+                {/* Header Strip */}
+                <div className="relative z-10 px-8 xl:px-14 pt-10 lg:pt-14 pb-4 shrink-0 text-center lg:text-left">
+                    {/* Mobile Logo */}
+                    <div className="lg:hidden mb-4">
+                        <img src="https://ik.imagekit.io/2lax2ytm2/Logo-v1%20(1).png" alt="Redleaf-BD" className="h-14 w-auto mx-auto object-contain brightness-0 invert" />
                     </div>
+                    <h2 className="text-white font-black text-3xl xl:text-4xl leading-none drop-shadow-md tracking-tight">Create Account</h2>
+                    <p className="text-red-100 text-xs font-medium mt-1.5">Fresh groceries delivered to you</p>
+                </div>
 
-                    {/* Sign Up Form */}
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="space-y-4">
-                            {/* Name Input */}
-                            <div>
-                                <input
-                                    type="text"
-                                    placeholder="Your Full Name *"
-                                    {...register("name", { required: "Name is required" })}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#0A3D2A] focus:ring-1 focus:ring-[#0A3D2A] text-gray-800 transition-all bg-gray-50"
-                                />
-                                {errors.name && (
-                                    <span className="text-red-500 text-sm mt-1">{errors.name.message}</span>
-                                )}
-                            </div>
+                {/* Form Wrapper — sits directly on red background */}
+                <div className="relative z-10 flex-1 w-full overflow-y-auto no-scrollbar">
+                    <div className="px-8 xl:px-14 pb-12 flex flex-col justify-center h-full">
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 max-w-xl mx-auto w-full">
 
-                            {/* Photo Upload */}
-                            <div className="space-y-2">
-                                <label className="block text-sm font-semibold text-gray-700">
-                                    Profile Photo
-                                </label>
-                                <div className="space-y-3">
-                                    <div className="flex items-center space-x-3">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            {...register("photo")}
-                                            className="hidden"
-                                            id="photo-upload"
-                                        />
-                                        <label
-                                            htmlFor="photo-upload"
-                                            className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-colors"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                            </svg>
-                                            Choose Photo
-                                        </label>
-                                        <span className="text-sm text-gray-400 font-medium">or link</span>
-                                    </div>
+                            {/* Name + Photo URL row */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div>
                                     <input
                                         type="text"
-                                        placeholder="Enter public photo URL"
-                                        {...register("photoURL")}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#0A3D2A] text-gray-800 text-sm transition-all bg-gray-50"
+                                        placeholder="Full Name *"
+                                        {...register("name", { required: true })}
+                                        className="w-full px-4 py-3 text-[13px] font-bold bg-white/95 border-none rounded-xl focus:outline-none focus:ring-4 focus:ring-yellow-400/50 text-gray-900 placeholder:text-gray-400 transition-all shadow-xl shadow-black/10"
                                     />
                                 </div>
-                            </div>
-
-                            {/* Email Input */}
-                            <div>
-                                <input
-                                    type="email"
-                                    placeholder="Your email address *"
-                                    {...register("email", { required: "Email is required" })}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#0A3D2A] focus:ring-1 focus:ring-[#0A3D2A] text-gray-800 transition-all bg-gray-50"
-                                />
-                                {errors.email && (
-                                    <span className="text-red-500 text-sm mt-1">{errors.email.message}</span>
-                                )}
-                            </div>
-
-                            {/* Password Input */}
-                            <div>
                                 <div className="relative">
                                     <input
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="Create strong password *"
-                                        {...register("password", {
-                                            required: "Password is required",
-                                            minLength: {
-                                                value: 6,
-                                                message: "Password must be at least 6 characters"
-                                            },
-                                            pattern: {
-                                                value: /(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z])/,
-                                                message: "Include uppercase, lowercase, number and special char"
-                                            }
-                                        })}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#0A3D2A] focus:ring-1 focus:ring-[#0A3D2A] text-gray-800 transition-all bg-gray-50"
+                                        type="text"
+                                        placeholder="Photo URL"
+                                        {...register("photoURL")}
+                                        className="w-full px-4 py-3 pr-8 text-[13px] font-bold bg-white/95 border-none rounded-xl focus:outline-none focus:ring-4 focus:ring-yellow-400/50 text-gray-900 placeholder:text-gray-400 transition-all shadow-xl shadow-black/10"
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#0A3D2A] transition-colors"
-                                    >
-                                        {showPassword ? (
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                                                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                                            </svg>
-                                        ) : (
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clipRule="evenodd" />
-                                                <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
-                                            </svg>
-                                        )}
-                                    </button>
+                                    <UploadCloud size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                                 </div>
-                                {errors.password && (
-                                    <span className="text-red-500 text-sm mt-1">{errors.password.message}</span>
-                                )}
                             </div>
 
-                            {/* Captcha Section */}
-                            <div className="space-y-3 p-4 bg-green-50 rounded-lg border border-green-100">
-                                <LoadCanvasTemplate />
-                                <div className="flex gap-2">
+                            {/* Email */}
+                            <input
+                                type="email"
+                                placeholder="Email Address *"
+                                {...register("email", { required: true })}
+                                className="w-full px-4 py-3 text-[13px] font-bold bg-white/95 border-none rounded-xl focus:outline-none focus:ring-4 focus:ring-yellow-400/50 text-gray-900 placeholder:text-gray-400 transition-all shadow-xl shadow-black/10"
+                            />
+
+                            {/* Password */}
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Password (min 6 chars) *"
+                                    {...register("password", { required: true, minLength: 6 })}
+                                    className="w-full px-4 py-3 text-[13px] font-bold bg-white/95 border-none rounded-xl focus:outline-none focus:ring-4 focus:ring-yellow-400/50 text-gray-900 placeholder:text-gray-400 transition-all shadow-xl shadow-black/10"
+                                />
+                                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-600 transition-colors">
+                                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                </button>
+                            </div>
+
+                            {/* Captcha Row */}
+                            <div className="flex items-stretch gap-3 p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 shadow-xl shadow-black/10 mt-1">
+                                <div className="shrink-0 bg-gray-900/60 backdrop-blur-sm p-1 rounded-lg border border-white/10 shadow-inner h-[40px] flex items-center justify-center overflow-hidden min-w-[130px]">
+                                    <div className="scale-[0.80] origin-left -ml-2">
+                                        <LoadCanvasTemplate />
+                                    </div>
+                                </div>
+                                <div className="flex flex-col gap-1.5 flex-1 min-w-0 justify-center">
                                     <input
                                         type="text"
-                                        name="captcha"
-                                        id="signupCaptcha"
-                                        placeholder="Enter captcha text *"
-                                        className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#0A3D2A] text-gray-800 transition-colors bg-white shadow-sm"
-                                        required
+                                        id="signupCaptchaInput"
+                                        placeholder="Type captcha"
+                                        className="w-full px-3 py-1.5 text-[11px] font-bold bg-white border-none rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-900 placeholder:text-gray-400 shadow-inner"
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={() => handleValidateCaptcha(document.getElementById('signupCaptcha'))}
-                                        className="px-6 py-3 bg-[#0A3D2A] hover:bg-green-800 text-white font-bold rounded-lg transition-all shadow-md"
-                                    >
-                                        Verify
+                                    <button type="button" onClick={handleValidateCaptcha}
+                                        className={`w-full py-1.5 text-[9px] font-black uppercase tracking-widest rounded-md transition-all shadow-sm ${captchaVerified ? 'bg-green-500 text-white' : 'bg-yellow-400 hover:bg-yellow-300 text-gray-900'}`}>
+                                        {captchaVerified ? '✓ Verified' : 'Verify'}
                                     </button>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Terms and Conditions */}
-                        <div className="flex items-center mt-2">
-                            <input
-                                type="checkbox"
-                                id="terms"
-                                checked={termsAccepted}
-                                onChange={(e) => setTermsAccepted(e.target.checked)}
-                                className="w-4 h-4 border-gray-300 rounded text-red-600 focus:ring-red-600 cursor-pointer"
-                            />
-                            <label htmlFor="terms" className="ml-2 text-sm text-gray-600 cursor-pointer">
-                                I have read and agree to all{' '}
-                                <Link to="/terms" className="text-red-600 hover:text-red-700 font-semibold" target="_blank">
-                                    Terms & conditions
-                                </Link>
+                            {/* Terms */}
+                            <label className="flex items-center gap-2.5 cursor-pointer select-none pt-1">
+                                <input type="checkbox" checked={termsAccepted} onChange={(e) => setTermsAccepted(e.target.checked)}
+                                    className="w-4 h-4 rounded border-none text-yellow-400 focus:ring-yellow-400 accent-yellow-400 cursor-pointer shadow-sm" />
+                                <span className="text-[11px] text-red-50 font-medium">
+                                    I agree to the{' '}
+                                    <Link to="/terms" target="_blank" className="text-yellow-300 hover:text-yellow-100 font-bold underline decoration-yellow-400/30 underline-offset-2">Terms & Conditions</Link>
+                                </span>
                             </label>
-                        </div>
 
-                        {/* Sign Up Button */}
-                        <button
-                            type="submit"
-                            disabled={disabled || !termsAccepted}
-                            className="w-full py-3 px-6 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                            <span>Create Account</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                        </button>
-                        
-                        <div className="relative py-2 hidden lg:block">
-                           <div className="absolute inset-0 flex items-center">
-                              <div className="w-full border-t border-gray-200"></div>
-                           </div>
-                           <div className="relative flex justify-center">
-                              <span className="bg-white px-4 text-sm text-gray-500">Or continue with</span>
-                           </div>
-                        </div>
+                            {/* Submit + Google */}
+                            <div className="pt-2 space-y-2">
+                                <button
+                                    type="submit"
+                                    disabled={!termsAccepted}
+                                    className="w-full py-4 bg-gray-900 hover:bg-black text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-xl shadow-black/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    Create Account <ArrowRight size={14} />
+                                </button>
+                                <div className="w-full -mt-2">
+                                    <SocialLogin />
+                                </div>
+                            </div>
 
-                        {/* Google Sign In */}
-                        <div className="flex justify-center">
-                           <SocialLogin />
-                        </div>
-
-                        {/* Sign In Link */}
-                        <div className="flex items-center justify-center mt-6 text-sm font-semibold">
-                            <span className="text-gray-500 mr-2">Already have an account?</span>
-                            <Link to="/login" className="text-[#0A3D2A] hover:text-red-600 transition-colors">
-                                Sign in
-                            </Link>
-                        </div>
-                    </form>
+                            {/* Mobile footer */}
+                            <div className="flex justify-center pt-2">
+                                <Link to="/login" className="text-xs font-bold text-white hover:text-yellow-300 transition-all">
+                                    Already have an account? Sign in
+                                </Link>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
