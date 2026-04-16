@@ -1,6 +1,6 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, Mail, Shield, Calendar, Edit3, Check, X, Camera } from 'lucide-react';
+import { User, Mail, Shield, Calendar, Edit3, Check, MapPin, Phone, Crown, AlertCircle } from 'lucide-react';
 import { AuthContext } from '../../Providers/AuthProvider';
 import useAdmin from '../../hooks/useAdmin';
 import Swal from 'sweetalert2';
@@ -13,23 +13,37 @@ const Profile = () => {
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [photoURL, setPhotoURL] = useState(user?.photoURL || '');
   const [saving, setSaving] = useState(false);
+  
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+
+  useEffect(() => {
+    if (user?.email) {
+      setPhone(localStorage.getItem(`phone_${user.email}`) || '');
+      setAddress(localStorage.getItem(`address_${user.email}`) || '');
+    }
+  }, [user]);
 
   const handleSave = async () => {
     if (!displayName.trim()) return;
     setSaving(true);
     try {
       await updateUserProfile(displayName.trim(), photoURL.trim() || user?.photoURL);
+      if (user?.email) {
+        localStorage.setItem(`phone_${user.email}`, phone.trim());
+        localStorage.setItem(`address_${user.email}`, address.trim());
+      }
       setEditing(false);
       Swal.fire({
         icon: 'success',
-        title: 'Identity Synched',
+        title: 'Profile Updated',
         showConfirmButton: false,
         timer: 1800,
         background: '#fff',
         customClass: { popup: 'rounded-3xl shadow-xl' }
       });
     } catch {
-      Swal.fire({ icon: 'error', title: 'Action Failed', confirmButtonColor: '#e63946' });
+      Swal.fire({ icon: 'error', title: 'Update Failed', confirmButtonColor: '#e63946' });
     } finally {
       setSaving(false);
     }
@@ -39,156 +53,149 @@ const Profile = () => {
     ? new Date(user.metadata.creationTime).toLocaleDateString('en-BD', {
         year: 'numeric', month: 'long', day: 'numeric',
       })
-    : 'Registry Start: —';
+    : 'Unknown';
+
+  const InfoCard = ({ icon: Icon, label, value, colorClass }) => (
+    <div className="bg-gray-50/50 border border-gray-100 rounded-2xl p-5 flex items-start gap-4 hover:shadow-md transition-shadow">
+      <div className={`mt-0.5 p-2 rounded-xl bg-white shadow-sm border border-gray-50 ${colorClass}`}>
+        <Icon className="h-5 w-5" />
+      </div>
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{label}</p>
+        <p className="font-bold text-gray-800 text-sm whitespace-pre-wrap">{value || 'Not provided'}</p>
+      </div>
+    </div>
+  );
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-6 lg:p-12 font-['Poppins',sans-serif]"
-    >
-      <div className="max-w-4xl mx-auto space-y-10">
-        {/* Header */}
-        <div className="flex items-center gap-6">
-          <div className="w-16 h-16 rounded-[24px] bg-red-600 flex items-center justify-center shadow-2xl shadow-red-200">
-            <User className="h-8 w-8 text-white" />
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="p-4 sm:p-6 lg:p-8 font-['Poppins',sans-serif]">
+      <div className="max-w-5xl mx-auto space-y-6">
+        
+        {/* Header Title */}
+        <div className="flex items-center gap-4 mb-6 relative">
+          <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center border border-red-100 shadow-sm relative z-10">
+            <User className="h-6 w-6 text-red-600" />
           </div>
-          <div>
-            <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase">Personnel Profile</h2>
-            <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mt-1">Manage your administrative identity</p>
+          <div className="relative z-10">
+            <h2 className="text-3xl font-black text-gray-900 tracking-tight">My Profile</h2>
+            <p className="text-sm font-medium text-gray-500 mt-1">Manage your account details and preferences</p>
           </div>
         </div>
 
         {/* Profile Card */}
-        <div className="bg-white rounded-[40px] shadow-2xl border border-gray-50 overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-yellow-400 opacity-30" />
-          
-          {/* Cover Area */}
-          <div className="h-40 bg-gradient-to-br from-red-600 via-red-700 to-black relative">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-            <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-white to-transparent" />
+        <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+          {/* Banner */}
+          <div className="h-40 bg-gradient-to-r from-red-600 to-red-800 relative">
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay" />
           </div>
 
-          {/* Identity Section */}
-          <div className="px-8 pb-10">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 -mt-16 mb-10">
-              <div className="relative group">
-                <div className="absolute -inset-1 bg-gradient-to-r from-red-600 to-yellow-400 rounded-[32px] blur opacity-25 group-hover:opacity-50 transition duration-1000"></div>
-                <img
-                  src={user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=e63946&color=fff&size=200`}
-                  alt="Profile"
-                  className="relative w-32 h-32 md:w-40 md:h-40 rounded-[32px] border-4 border-white shadow-2xl object-cover"
-                  onError={(e) => {
-                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=e63946&color=fff&size=200`;
-                  }}
-                />
-                {isAdmin && (
-                  <div className="absolute -top-2 -right-2 w-10 h-10 bg-yellow-400 rounded-2xl flex items-center justify-center border-4 border-white shadow-xl">
-                    <Shield className="h-5 w-5 text-red-700" />
+          <div className="px-6 sm:px-10 pb-10">
+            {/* Avatar & Actions */}
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+              <div className="flex flex-col md:flex-row items-center md:items-end gap-6">
+                <div className="relative group -mt-16 md:-mt-20">
+                  <div className="absolute -inset-1 bg-red-600 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                  <img
+                    src={user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=e63946&color=fff&size=200`}
+                    alt="Profile"
+                    className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white shadow-xl object-cover bg-white relative z-10"
+                    onError={(e) => { e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.displayName || 'U')}&background=e63946&color=fff&size=200`; }}
+                  />
+                  {isAdmin && (
+                    <div className="absolute bottom-2 right-1 z-20 bg-yellow-400 p-2 rounded-full border-2 border-white shadow-md" title="Administrator">
+                      <Crown className="h-4 w-4 text-yellow-900" />
+                    </div>
+                  )}
+                </div>
+                {!editing && (
+                  <div className="text-center md:text-left pb-1">
+                    <h3 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter uppercase leading-none">
+                      {user?.displayName || 'Authorized User'}
+                    </h3>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-3">{user?.email}</p>
                   </div>
                 )}
               </div>
 
-              <div className="flex gap-4">
+              <div className="flex gap-3 w-full md:w-auto">
                 {editing ? (
                   <>
-                    <button
-                      onClick={() => setEditing(false)}
-                      className="px-6 py-3 rounded-2xl border border-gray-100 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-all active:scale-90"
-                    >
-                      Abort
+                    <button onClick={() => setEditing(false)} className="flex-1 md:flex-none px-6 py-2.5 rounded-xl border border-gray-200 text-xs font-black uppercase tracking-widest text-gray-500 hover:bg-gray-50 transition-all">
+                      Cancel
                     </button>
-                    <button
-                      onClick={handleSave}
-                      disabled={saving}
-                      className="flex items-center gap-2 px-8 py-3 rounded-2xl bg-red-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-100 active:scale-90 disabled:opacity-50"
-                    >
-                      <Check className="h-4 w-4" />
-                      {saving ? 'Syncing...' : 'Commit Changes'}
+                    <button onClick={handleSave} disabled={saving} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl bg-red-600 text-white text-xs font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-md shadow-red-100 disabled:opacity-50">
+                      <Check className="h-4 w-4" /> {saving ? 'Saving...' : 'Save'}
                     </button>
                   </>
                 ) : (
-                  <button
-                    onClick={() => {
-                      setDisplayName(user?.displayName || '');
-                      setPhotoURL(user?.photoURL || '');
-                      setEditing(true);
-                    }}
-                    className="flex items-center gap-2 px-8 py-4 rounded-2xl border border-gray-100 bg-white text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-red-600 hover:border-red-100 transition-all shadow-lg shadow-gray-100 active:scale-95"
-                  >
-                    <Edit3 className="h-4 w-4" /> Refine Identity
+                  <button onClick={() => { setDisplayName(user?.displayName || ''); setPhotoURL(user?.photoURL || ''); setEditing(true); }} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-2.5 rounded-xl border border-gray-200 bg-white text-xs font-black uppercase tracking-widest text-gray-700 hover:text-red-600 hover:border-red-200 transition-all shadow-sm shadow-gray-50 active:scale-95">
+                    <Edit3 className="h-4 w-4" /> Edit Profile
                   </button>
                 )}
               </div>
             </div>
 
-            {/* Editable Content */}
-            {editing ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                <div>
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 block">Display Identity</label>
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full px-6 py-4 rounded-2xl border border-gray-100 text-sm font-bold text-gray-800 focus:outline-none focus:ring-4 focus:ring-red-50 focus:border-red-600 transition-all"
-                    placeholder="Your Full Name"
-                  />
-                </div>
-                <ImageUploadField 
-                  label="Visual Endpoint (Avatar)"
-                  value={photoURL} 
-                  onChange={(url) => setPhotoURL(url)} 
-                  placeholder="https://visuals..." 
-                />
-              </div>
-            ) : (
-              <div className="mb-10">
-                <h3 className="text-4xl font-black text-gray-900 tracking-tighter uppercase">
-                  {user?.displayName || 'Unauthorized User'}
-                </h3>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {isAdmin && (
-                    <span className="inline-flex items-center gap-2 px-5 py-2 bg-red-600 text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-red-100">
-                      <Shield className="h-3.5 w-3.5" /> High Command
-                    </span>
-                  )}
-                  <span className="inline-flex items-center gap-2 px-5 py-2 bg-yellow-400 text-red-900 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-yellow-100">
-                    Verified Agent
+            {/* Badges */}
+            {!editing && (
+              <div className="flex flex-wrap gap-2 mb-8">
+                <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-gray-50 text-gray-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-gray-100">
+                  <Calendar className="h-3 w-3" /> Joined {joinDate}
+                </span>
+                {isAdmin && (
+                  <span className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-red-50 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-red-100 shadow-sm">
+                    <Shield className="h-3 w-3" /> Administrator
                   </span>
-                </div>
+                )}
               </div>
             )}
 
-            {/* Metric Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[
-                { label: 'Transmission', value: user?.email, icon: Mail, color: 'text-red-500', bg: 'bg-red-50' },
-                { label: 'Operational Role', value: isAdmin ? 'Administrator' : 'Client', icon: Shield, color: 'text-yellow-600', bg: 'bg-yellow-50' },
-                { label: 'Registry Date', value: joinDate, icon: Calendar, color: 'text-gray-900', bg: 'bg-gray-50' },
-                { label: 'Provider', value: user?.providerData?.[0]?.providerId === 'google.com' ? 'Google Cloud' : 'Native Auth', icon: User, color: 'text-gray-400', bg: 'bg-gray-50' },
-              ].map((m, i) => (
-                <div key={i} className={`${m.bg} p-6 rounded-[32px] border border-white transition-all hover:scale-105 shadow-sm`}>
-                  <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center mb-4 shadow-sm">
-                    <m.icon className={`h-5 w-5 ${m.color}`} />
+            {/* Content Area */}
+            {editing ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-gray-50/50 p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-inner">
+                <div className="space-y-5">
+                  <div>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Display Name</label>
+                    <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} className="w-full px-5 py-3.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all bg-white shadow-sm" placeholder="Your Full Name" />
                   </div>
-                  <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">{m.label}</p>
-                  <p className="text-xs font-black text-gray-900 truncate uppercase tracking-tight">{m.value}</p>
+                  <div>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Email Address</label>
+                    <input type="email" value={user?.email || ''} disabled className="w-full px-5 py-3.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-400 bg-gray-100 cursor-not-allowed" />
+                    <p className="text-[10px] text-gray-400 mt-1 font-medium select-none">Email cannot be changed.</p>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Phone Number</label>
+                    <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="w-full px-5 py-3.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all bg-white shadow-sm" placeholder="+880 1..." />
+                  </div>
                 </div>
-              ))}
-            </div>
+                <div className="space-y-5 min-h-[100%] flex flex-col">
+                  <div className="flex-1">
+                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 block">Delivery Address</label>
+                    <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows="5" className="w-full h-32 px-5 py-3.5 rounded-xl border border-gray-200 text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all bg-white shadow-sm resize-none" placeholder="Your full local address..."></textarea>
+                  </div>
+                  <div>
+                    <ImageUploadField label="Profile Image URL" value={photoURL} onChange={(url) => setPhotoURL(url)} placeholder="Provide an image URL..." />
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <InfoCard icon={Mail} label="Email Address" value={user?.email} colorClass="text-indigo-600" />
+                <InfoCard icon={Phone} label="Phone Number" value={phone} colorClass="text-emerald-600" />
+                <InfoCard icon={MapPin} label="Delivery Address" value={address} colorClass="text-red-600" />
+              </motion.div>
+            )}
           </div>
         </div>
 
-        {/* Alerts */}
+        {/* Verification Alert */}
         {!user?.emailVerified && user?.providerData?.[0]?.providerId !== 'google.com' && (
-          <div className="p-6 bg-red-600 rounded-[32px] text-white flex items-center gap-6 shadow-2xl shadow-red-200">
-            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center animate-pulse">
-              <span className="text-2xl font-black">!</span>
+          <div className="p-5 bg-red-50 border border-red-100 rounded-3xl flex flex-col sm:flex-row sm:items-center gap-4 shadow-sm">
+            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shrink-0 shadow-sm border border-red-50">
+              <AlertCircle className="h-6 w-6 text-red-600" />
             </div>
-            <div>
-               <h4 className="font-black uppercase tracking-widest text-sm mb-1">Identity Pending Verification</h4>
-               <p className="text-[10px] font-bold opacity-80 max-w-lg">Your contact endpoint is not verified. Check your registry inbox to finalize authentication.</p>
+            <div className="flex-1">
+               <h4 className="font-black text-red-900 text-sm tracking-tight">Email Not Verified</h4>
+               <p className="text-xs text-red-700 mt-0.5 font-medium">Please check your inbox to verify your email address. Certain features may be restricted until verified.</p>
             </div>
           </div>
         )}

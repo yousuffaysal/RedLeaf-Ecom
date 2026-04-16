@@ -125,13 +125,13 @@ const Login = () => {
                             disabled={!termsAccepted}
                             className="w-full py-4 bg-gray-900 hover:bg-black text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all shadow-2xl disabled:opacity-30"
                         >
-                            Execute Sign In
+                            Sign In
                         </button>
                         <SocialLogin />
                     </div>
 
-                    <div className="text-center pt-4">
-                        <Link to="/signup" className="text-[10px] font-black text-white/60 hover:text-white uppercase tracking-[0.2em] transition-all">
+                    <div className="text-center pt-8">
+                        <Link to="/signup" className="text-sm font-black text-white hover:text-yellow-400 uppercase tracking-widest transition-all">
                             Request New Membership
                         </Link>
                     </div>
