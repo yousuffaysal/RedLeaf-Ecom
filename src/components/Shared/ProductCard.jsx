@@ -1,11 +1,69 @@
 import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Swal from 'sweetalert2';
+import useAuth from '../../hooks/useAuth';
+import useCart from '../../hooks/useCart';
+import useAxiosSecure from '../../hooks/useAxiosSecure';
 import ProductDetailsModal from './ProductDetailsModal';
 
 const ProductCard = ({ product, disableHoverAnimation }) => {
   const { title, image, price, originalPrice, discountPercent, unit } = product;
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const axiosSecure = useAxiosSecure();
+  const [, refetchCart] = useCart();
+  const [addingToCart, setAddingToCart] = useState(false);
+
+  const handleAddToCart = async (e) => {
+    e.stopPropagation();
+    if (!user && location.pathname) {
+      Swal.fire({
+        title: 'Authentication Required',
+        text: 'Access granted after secure login.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#111827',
+        confirmButtonText: 'Secure Login'
+      }).then((result) => {
+        if (result.isConfirmed) navigate('/login', { state: { from: location } });
+      });
+      return;
+    }
+    
+    setAddingToCart(true);
+    const cartItem = {
+      productId: product._id,
+      email: user.email,
+      title: product.title,
+      price: product.price,
+      image: product.image,
+      quantity: 1,
+      unit: product.unit
+    };
+    
+    try {
+      await axiosSecure.post('/carts', cartItem);
+      Swal.fire({
+        icon: 'success',
+        title: 'Asset Added',
+        text: `${product.title} synced to your procurement list.`,
+        showConfirmButton: false,
+        timer: 1500,
+        position: 'center'
+      });
+      refetchCart();
+    } catch (error) {
+      Swal.fire({ icon: 'error', title: 'Transmission Error', text: 'Failed to sync asset to cart.' });
+    } finally {
+      setAddingToCart(false);
+    }
+  };
 
   return (
     <>
@@ -31,12 +89,17 @@ const ProductCard = ({ product, disableHoverAnimation }) => {
             className="w-full h-44 object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
           />
 
-          {/* Floating Green + Button */}
+          {/* Add to Cart Button */}
           <button
-            onClick={(e) => { e.stopPropagation(); }}
-            className="absolute bottom-3 right-3 w-11 h-11 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg transition-all active:scale-95 hover:scale-110"
+            onClick={handleAddToCart}
+            disabled={addingToCart || product.inStock === false}
+            className="absolute bottom-3 right-3 w-11 h-11 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg transition-all active:scale-95 hover:scale-110 disabled:opacity-50 disabled:hover:scale-100"
           >
-            <Plus size={18} strokeWidth={2.5} />
+            {addingToCart ? (
+              <span className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
+            ) : (
+              <Plus size={18} strokeWidth={2.5} />
+            )}
           </button>
         </div>
 
