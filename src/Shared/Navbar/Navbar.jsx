@@ -20,7 +20,7 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full shadow-md flex flex-col">
       {/* ── Top Main Header ── */}
-      <div className="w-full text-gray-800 border-b-2 border-red-300/30 relative overflow-hidden"
+      <div className="w-full text-gray-800 border-b-2 border-red-300/30 relative"
         style={{ background: 'linear-gradient(105deg, #ffffff 0%, #fff5f5 45%, #fff8f0 100%)' }}
       >
         {/* Subtle dot-grid texture */}
@@ -76,7 +76,7 @@ const Navbar = () => {
                    </span>
                 </div>
                 {/* Dropdown Menu */}
-                 <div className="absolute right-0 top-full mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-200 z-50">
+                 <div className="absolute right-0 top-full mt-3 w-56 rounded-xl shadow-2xl bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-200 z-[100] border border-gray-100">
                     <div className="py-1">
                        <div className="px-4 py-2 border-b border-gray-100 mb-1">
                          <p className="text-sm font-medium text-gray-900 truncate">{user.displayName}</p>
