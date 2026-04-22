@@ -112,8 +112,8 @@ const HeroBanner = () => {
 
   return (
     <section className="w-full bg-gray-50">
-      <div className="w-full py-2 pr-4 md:pr-6">
-        <div className="flex items-stretch gap-3 h-[600px]">
+      <div className="w-full py-2 px-4 md:px-6 lg:pl-0 lg:pr-6">
+        <div className="flex flex-col lg:flex-row items-stretch gap-3 lg:h-[500px] xl:h-[600px]">
 
           {/* ── Left Category Sidebar ── */}
           <aside className="hidden lg:flex flex-col w-72 shrink-0 bg-white rounded-none shadow-sm border border-gray-100 overflow-hidden">
@@ -146,10 +146,10 @@ const HeroBanner = () => {
           {/* ── Right Banner Area ── */}
           <div className="flex-1 min-w-0 flex flex-col gap-3" style={{ minHeight: '100%' }}>
 
-            {/* Top Banner Row — grows to fill 62% of the height */}
-            <div className="flex-[3] grid grid-cols-1 md:grid-cols-2 gap-3" style={{ minHeight: '180px' }}>
+            {/* Top Banner Row */}
+            <div className="flex-[3] flex flex-col md:flex-row gap-3">
               {/* Main Hero Slider */}
-              <div className="relative rounded-xl overflow-hidden h-full shadow-sm group">
+              <div className="relative rounded-xl overflow-hidden aspect-[16/9] md:aspect-auto md:flex-1 shadow-sm group">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={active.id}
@@ -194,7 +194,7 @@ const HeroBanner = () => {
               </div>
 
               {/* Secondary static promo banner — pure image card */}
-              <Link to="/products" className="relative rounded-xl overflow-hidden h-full shadow-sm block group">
+              <Link to="/products" className="relative rounded-xl overflow-hidden aspect-[16/9] md:aspect-auto md:flex-1 shadow-sm block group">
                 <img
                   src={staticPromoImg}
                   alt="Promotional Banner"
@@ -204,13 +204,13 @@ const HeroBanner = () => {
             </div>
 
             {/* Bottom Banner Row — pure image cards */}
-            <div className="flex-[2] grid grid-cols-1 sm:grid-cols-3 gap-3" style={{ minHeight: '140px' }}>
+            <div className="flex-[2] flex flex-col sm:flex-row gap-3">
               {heroBannersBottom.map((banner) => (
                 <motion.div
                   key={banner.id}
                   whileHover={{ scale: 1.02 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                  className="relative rounded-xl overflow-hidden h-full shadow-sm cursor-pointer group"
+                  className="relative rounded-xl overflow-hidden aspect-[16/9] sm:aspect-auto sm:flex-1 shadow-sm cursor-pointer group"
                 >
                   <img
                     src={banner.img}

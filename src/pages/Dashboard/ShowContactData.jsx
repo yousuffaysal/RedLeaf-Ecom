@@ -108,14 +108,14 @@ const ShowContactData = () => {
   };
 
   return (
-    <div className="w-full font-['Poppins',sans-serif]">
+    <div className="w-full h-[calc(100vh-64px)] lg:h-screen p-4 lg:p-8 font-['Poppins',sans-serif] flex flex-col">
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white rounded-[40px] shadow-2xl border border-gray-100 overflow-hidden"
+        className="bg-white rounded-[32px] lg:rounded-[40px] shadow-2xl border border-gray-100 overflow-hidden flex flex-col flex-1 min-h-0"
       >
         {/* Header */}
-        <div className="bg-white p-8 lg:p-10 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-8">
+        <div className="bg-white p-6 lg:p-8 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0">
           <div className="flex items-center gap-6">
             <div className="w-16 h-16 bg-red-600 rounded-[24px] flex items-center justify-center shadow-2xl shadow-red-200">
               <MessageSquare className="h-8 w-8 text-white" />
@@ -147,7 +147,7 @@ const ShowContactData = () => {
         </div>
 
         {/* Email-style Layout */}
-        <div className="flex flex-col lg:flex-row h-[650px] relative">
+        <div className="flex flex-col lg:flex-row flex-1 relative min-h-0">
           {/* Mobile Header Toggle */}
           <div className="lg:hidden flex items-center justify-between p-6 border-b border-gray-50 bg-white">
             <h3 className="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center gap-2">
@@ -222,10 +222,10 @@ const ShowContactData = () => {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 to-yellow-400 opacity-20" />
             
             {selectedContact ? (
-              <div className="flex flex-col h-full">
+              <div className="flex flex-col h-full min-h-0">
                 {/* Header Content Area */}
-                <div className="p-8 lg:p-12 border-b border-gray-50 bg-gray-50/30">
-                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
+                <div className="p-6 lg:p-10 border-b border-gray-50 bg-gray-50/30 shrink-0">
+                  <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                     <div className="flex items-start gap-6">
                       <div className="w-16 h-16 rounded-[24px] bg-white border border-gray-100 flex items-center justify-center shadow-xl">
                         <User className="h-8 w-8 text-red-600" />

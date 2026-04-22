@@ -74,8 +74,8 @@ const ProductDetailsModal = ({ product, onClose }) => {
       await axiosSecure.post('/carts', cartItem);
       Swal.fire({
         icon: 'success',
-        title: 'Asset Added',
-        text: `${product.title} synced to your procurement list.`,
+        title: 'Added to Cart',
+        text: `${product.title} has been added to your cart.`,
         showConfirmButton: false,
         timer: 1500,
         position: 'center'
@@ -83,7 +83,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
       refetchCart();
       onClose();
     } catch (error) {
-      Swal.fire({ icon: 'error', title: 'Transmission Error', text: 'Failed to sync asset to cart.' });
+      Swal.fire({ icon: 'error', title: 'Error', text: 'Failed to add product to cart.' });
     } finally {
       setAddingToCart(false);
     }
@@ -95,11 +95,11 @@ const ProductDetailsModal = ({ product, onClose }) => {
       if (isWishlisted) {
         stored = stored.filter(id => id !== product._id);
         setIsWishlisted(false);
-        Swal.fire({ toast: true, position: 'bottom-end', icon: 'info', title: 'Registry Updated', showConfirmButton: false, timer: 2000 });
+        Swal.fire({ toast: true, position: 'bottom-end', icon: 'info', title: 'Removed from Wishlist', showConfirmButton: false, timer: 2000 });
       } else {
         stored.push(product._id);
         setIsWishlisted(true);
-        Swal.fire({ toast: true, position: 'bottom-end', icon: 'success', title: 'Curated to Wishlist', showConfirmButton: false, timer: 2000 });
+        Swal.fire({ toast: true, position: 'bottom-end', icon: 'success', title: 'Added to Wishlist', showConfirmButton: false, timer: 2000 });
       }
       localStorage.setItem('wishlist', JSON.stringify(stored));
     } catch (err) {}
@@ -108,7 +108,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
   const handleShare = async () => {
     try {
       await navigator.clipboard.writeText(`${window.location.origin}/products/${product._id}`);
-      Swal.fire({ toast: true, position: 'bottom-end', icon: 'success', title: 'Link Secured', showConfirmButton: false, timer: 2000 });
+      Swal.fire({ toast: true, position: 'bottom-end', icon: 'success', title: 'Link Copied', showConfirmButton: false, timer: 2000 });
     } catch (error) {}
   };
 
@@ -129,12 +129,12 @@ const ProductDetailsModal = ({ product, onClose }) => {
       >
         <button 
           onClick={onClose} 
-          className="absolute right-6 top-6 z-10 w-10 h-10 flex items-center justify-center rounded-2xl bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm group"
+          className="absolute right-4 top-4 md:right-6 md:top-6 z-10 w-10 h-10 flex items-center justify-center rounded-2xl bg-gray-50/80 text-gray-500 hover:bg-red-600 hover:text-white transition-all shadow-sm group backdrop-blur-md"
         >
           <X size={20} className="group-hover:rotate-90 transition-transform" />
         </button>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 p-8 md:p-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10 p-5 md:p-12">
           <div className="flex gap-4 self-start sticky top-8">
             <div className="hidden sm:flex flex-col gap-4 w-24 shrink-0">
               <div className="w-full aspect-square border-2 border-red-600 rounded-2xl overflow-hidden cursor-pointer p-1 bg-white">
@@ -155,7 +155,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
               Premium Collection
             </div>
             
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 leading-[1.1] mb-4 tracking-tighter">
+            <h2 className="text-2xl md:text-4xl font-black text-gray-900 leading-[1.1] mb-4 tracking-tighter mt-4 md:mt-0">
               {product.title}
             </h2>
 
@@ -183,9 +183,9 @@ const ProductDetailsModal = ({ product, onClose }) => {
 
             {/* Procurement Strategy */}
             <div className="flex flex-col gap-5 mt-auto mb-10">
-              <div className="flex flex-row gap-4 h-[60px] w-full">
+              <div className="flex flex-col sm:flex-row gap-4 w-full">
                 {/* Quantity Command */}
-                <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden w-40 flex-shrink-0">
+                <div className="flex items-center justify-between bg-gray-50 border border-gray-100 rounded-2xl overflow-hidden w-full sm:w-40 h-[60px] flex-shrink-0">
                   <button 
                     disabled={quantity <= 1}
                     onClick={() => setQuantity(q => q - 1)} 
@@ -208,7 +208,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
                 <button 
                   onClick={handleAddToCart}
                   disabled={addingToCart || product.inStock === false}
-                  className="flex-1 h-full bg-red-600 hover:bg-red-700 text-white font-black text-sm uppercase tracking-[0.15em] rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-red-200 disabled:opacity-50"
+                  className="flex-1 h-[60px] bg-red-600 hover:bg-red-700 text-white font-black text-sm uppercase tracking-[0.15em] rounded-2xl flex items-center justify-center gap-3 transition-all shadow-xl shadow-red-200 disabled:opacity-50"
                 >
                   {addingToCart ? (
                     <span className="animate-spin w-5 h-5 border-3 border-white/30 border-t-white rounded-full" />
@@ -229,13 +229,13 @@ const ProductDetailsModal = ({ product, onClose }) => {
                     ${isWishlisted ? 'bg-red-50 text-red-600 border border-red-100' : 'bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-600'}
                   `}>
                   <Heart size={18} fill={isWishlisted ? 'currentColor' : 'none'} strokeWidth={2.5} /> 
-                  Curate
+                  Wishlist
                 </button>
                 <button 
                   onClick={handleShare}
                   className="h-[56px] flex items-center justify-center gap-3 bg-gray-50 text-gray-500 hover:bg-yellow-400 hover:text-gray-900 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all"
                 >
-                  <Share2 size={18} strokeWidth={2.5} /> Network Share
+                  <Share2 size={18} strokeWidth={2.5} /> Share
                 </button>
               </div>
             </div>
@@ -243,7 +243,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
             {/* Specifications Ledger */}
             <div className="border-t border-gray-100 pt-8">
               <div className="flex gap-8 border-b border-gray-100">
-                {['Highlights', 'Details', 'Reviews'].map(tab => (
+                {['Highlights', 'Details'].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -258,12 +258,11 @@ const ProductDetailsModal = ({ product, onClose }) => {
               </div>
               <div className="py-6 text-sm text-gray-700 font-medium leading-relaxed min-h-[150px]">
                 {activeTab === 'Highlights' && (
-                   product.highlights ? <div dangerouslySetInnerHTML={{__html: product.highlights}} /> : <p>High-priority highlights encrypted or unavailable.</p>
+                   product.highlights ? <div dangerouslySetInnerHTML={{__html: product.highlights}} /> : <p>Highlights are currently unavailable.</p>
                 )}
                 {activeTab === 'Details' && (
-                   product.description ? <p>{product.description}</p> : <p>Full technical details in development.</p>
+                   product.description ? <div className="whitespace-pre-wrap leading-relaxed space-y-4">{product.description}</div> : <p>Product description is currently unavailable.</p>
                 )}
-                {activeTab === 'Reviews' && <p>Consolidated feedback module pending synchronization.</p>}
               </div>
             </div>
 
@@ -271,10 +270,10 @@ const ProductDetailsModal = ({ product, onClose }) => {
         </div>
 
         {/* Global Catalog Integration */}
-        <div className="bg-gray-50/50 border-t border-gray-100 p-8 md:p-12">
+        <div className="bg-gray-50/50 border-t border-gray-100 p-5 md:p-12">
           <div className="flex items-center justify-between mb-8">
-             <h3 className="text-lg font-black text-gray-900 uppercase tracking-widest">Recommended Inventory</h3>
-             <Link to="/products" className="text-[10px] font-black text-red-600 uppercase tracking-widest hover:underline">View All Assets</Link>
+             <h3 className="text-lg font-black text-gray-900 uppercase tracking-widest">Recommended Products</h3>
+             <Link to="/products" className="text-[10px] font-black text-red-600 uppercase tracking-widest hover:underline">View All Products</Link>
           </div>
           {isLoading ? (
             <div className="flex justify-center py-10"><div className="animate-spin w-8 h-8 border-4 border-red-100 border-t-red-600 rounded-full" /></div>
@@ -285,7 +284,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
               ))}
             </div>
           ) : (
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center py-10">No matching assets in local database.</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center py-10">No related products found.</p>
           )}
         </div>
 

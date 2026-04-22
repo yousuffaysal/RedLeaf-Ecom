@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, CheckCircle, Clock, XCircle, Truck, ChevronDown, Search, RefreshCw, DollarSign, Eye, X } from 'lucide-react';
+import { Package, CheckCircle, Clock, XCircle, Truck, ChevronDown, Search, RefreshCw, DollarSign, Eye, X, Trash2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
@@ -61,6 +61,45 @@ const ManagePayments = () => {
     } finally {
       setUpdating(null);
     }
+  };
+
+  const handleDeleteOrder = async (orderId) => {
+    Swal.fire({
+      title: 'Delete Order?',
+      text: 'This action is irreversible.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, Exterminate',
+      background: '#fff',
+      customClass: { popup: 'rounded-3xl p-6' }
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axiosSecure.delete(`/orders/${orderId}`);
+          Swal.fire({
+            title: 'Exterminated!',
+            text: 'The order record has been erased.',
+            icon: 'success',
+            showConfirmButton: false,
+            timer: 1500,
+            background: '#fff',
+            customClass: { popup: 'rounded-3xl' }
+          });
+          refetch();
+        } catch (error) {
+          Swal.fire({ icon: 'error', title: 'Deletion Failed', confirmButtonColor: '#dc2626' });
+        }
+      }
+    });
+  };
+
+  const formatAddress = (addr) => {
+    if (!addr) return 'N/A';
+    return addr
+      .replace(/\s?(Address \d+:|Street Name:|Building Number:|Street Address:|State:|City:|Post Code:|Mobile:|Email:|Phone:)/gi, '\n$1')
+      .trim();
   };
 
   return (
@@ -209,10 +248,17 @@ const ManagePayments = () => {
                             </div>
                             <button
                               onClick={() => setViewOrderInfo(order)}
-                              className="p-1.5 rounded-lg border border-gray-100 text-gray-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all shrink-0"
+                              className="p-1.5 rounded-lg border border-gray-100 text-gray-500 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all shrink-0"
                               title="View Order Intelligence"
                             >
                               <Eye size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteOrder(order._id)}
+                              className="p-1.5 rounded-lg border border-gray-100 text-gray-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all shrink-0"
+                              title="Exterminate Order"
+                            >
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         </td>
@@ -246,52 +292,84 @@ const ManagePayments = () => {
               className="bg-white rounded-[24px] shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]"
               onClick={e => e.stopPropagation()}
             >
-                <div className="p-6 md:p-8 bg-gray-50 flex justify-between items-start border-b border-gray-100 shrink-0">
+                <div className="p-6 md:p-8 bg-white flex justify-between items-start border-b border-gray-100 shrink-0">
                   <div>
-                    <h3 className="text-xl font-black text-gray-900 tracking-tight">Order Details</h3>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Order ID: {viewOrderInfo._id}</p>
+                    <h3 className="text-2xl font-black text-gray-900 tracking-tight mb-1">Order Details</h3>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                      Order ID: <span className="font-mono text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-100/50">{viewOrderInfo._id}</span>
+                    </p>
                   </div>
-                  <button onClick={() => setViewOrderInfo(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500"><X size={20}/></button>
+                  <button onClick={() => setViewOrderInfo(null)} className="p-2.5 bg-gray-50 hover:bg-gray-100 hover:text-red-600 rounded-xl transition-all text-gray-500 border border-gray-100 shadow-sm">
+                    <X size={18} strokeWidth={2.5} />
+                  </button>
                 </div>
                 
-                <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8 overflow-y-auto no-scrollbar relative shrink">
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-red-400"></span> Customer Details</h4>
-                    <div className="space-y-4">
-                      <div><p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Full Name</p><p className="font-semibold text-gray-900 text-sm">{viewOrderInfo.customerName || 'N/A'}</p></div>
-                      <div><p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Email</p><p className="font-semibold text-gray-900 text-sm break-all">{viewOrderInfo.email}</p></div>
-                      <div><p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</p><p className="font-semibold text-gray-900 text-sm">{viewOrderInfo.phone || 'N/A'} {viewOrderInfo.altPhone && <span className="text-gray-400 text-xs">/ {viewOrderInfo.altPhone}</span>}</p></div>
+                <div className="p-6 md:p-8 bg-gray-50/30 grid grid-cols-1 md:grid-cols-2 gap-6 overflow-y-auto no-scrollbar relative shrink">
+                  {/* Customer Details Card */}
+                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col">
+                    <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-widest mb-5 flex items-center gap-2 border-b border-gray-50 pb-3">
+                      <span className="w-2 h-2 rounded-full bg-red-500"></span> Customer Identity
+                    </h4>
+                    <div className="space-y-4 flex-1">
+                      <div className="grid grid-cols-3 gap-2">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Name</p>
+                        <p className="col-span-2 font-semibold text-gray-900 text-sm leading-tight">{viewOrderInfo.customerName || 'N/A'}</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Email</p>
+                        <p className="col-span-2 font-semibold text-gray-900 text-sm break-all leading-tight">{viewOrderInfo.email}</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Phone</p>
+                        <p className="col-span-2 font-semibold text-gray-900 text-sm leading-tight">
+                          {viewOrderInfo.phone || 'N/A'} 
+                          {viewOrderInfo.altPhone && <span className="text-gray-400 text-xs ml-1 font-medium">/ {viewOrderInfo.altPhone}</span>}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Delivery Information</h4>
-                    <div className="space-y-4">
-                      <div><p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">City / Zone</p><p className="font-semibold text-gray-900 text-sm">{viewOrderInfo.city || 'N/A'}</p></div>
-                      <div><p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Full Address</p><p className="font-semibold text-gray-900 text-sm leading-snug">{viewOrderInfo.address || viewOrderInfo.deliveryAddress || 'N/A'}</p></div>
+
+                  {/* Delivery Information Card */}
+                  <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm flex flex-col">
+                    <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-widest mb-5 flex items-center gap-2 border-b border-gray-50 pb-3">
+                      <span className="w-2 h-2 rounded-full bg-blue-500"></span> Delivery Logistics
+                    </h4>
+                    <div className="space-y-4 flex-1">
+                      <div className="grid grid-cols-3 gap-2">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">City</p>
+                        <p className="col-span-2 font-semibold text-gray-900 text-sm leading-tight">{viewOrderInfo.city || 'N/A'}</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Address</p>
+                        <p className="col-span-2 font-medium text-gray-800 text-sm leading-relaxed whitespace-pre-wrap">{formatAddress(viewOrderInfo.address || viewOrderInfo.deliveryAddress)}</p>
+                      </div>
                       {viewOrderInfo.notes && (
-                         <div><p className="text-[9px] font-bold text-amber-500 uppercase tracking-widest">Special Notes</p><p className="font-semibold text-gray-800 text-sm bg-amber-50 p-3 rounded-xl border border-amber-100/50 italic leading-snug">{viewOrderInfo.notes}</p></div>
+                         <div className="grid grid-cols-3 gap-2 pt-3 mt-3 border-t border-dashed border-gray-100">
+                           <p className="text-[9px] font-bold text-amber-500 uppercase tracking-widest mt-0.5">Notes</p>
+                           <p className="col-span-2 font-semibold text-amber-900 text-xs bg-amber-50 p-3 rounded-xl border border-amber-100/50 italic leading-relaxed">{viewOrderInfo.notes}</p>
+                         </div>
                       )}
                     </div>
                   </div>
                 </div>
 
-                <div className="p-6 md:p-8 bg-gray-50/50 border-t border-gray-100 overflow-y-auto no-scrollbar shrink-0 min-h-[150px] max-h-[30vh]">
-                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                     <span className="bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md text-[9px]">{viewOrderInfo.items?.length || 0}</span> Order Items
+                <div className="p-6 md:p-8 bg-white border-t border-gray-100 overflow-y-auto no-scrollbar shrink-0 min-h-[150px] max-h-[40vh]">
+                  <h4 className="text-[10px] font-black text-gray-900 uppercase tracking-widest mb-6 flex items-center gap-3">
+                     <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded-lg text-[10px] shadow-inner">{viewOrderInfo.items?.length || 0}</span> Order Items
                   </h4>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {viewOrderInfo.items?.map((item, i) => (
-                      <div key={i} className="flex justify-between items-center py-3 border-b border-gray-100/50 last:border-0 last:pb-0">
-                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center p-1.5 shadow-sm"><img src={item.image} className="w-full h-full object-contain mix-blend-multiply" /></div>
+                      <div key={i} className="flex justify-between items-center py-4 border-b border-gray-50 last:border-0 last:pb-0 group">
+                         <div className="flex items-center gap-5">
+                            <div className="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center p-2 shadow-sm group-hover:scale-105 transition-transform"><img src={item.image} className="w-full h-full object-contain mix-blend-multiply" /></div>
                             <div>
-                              <p className="text-sm font-bold text-gray-900">{item.title}</p>
-                              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{item.unit || 'Standard'}</p>
+                              <p className="text-sm font-bold text-gray-900 leading-tight mb-1">{item.title}</p>
+                              <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{item.unit || 'Standard'}</p>
                             </div>
                          </div>
                          <div className="text-right">
-                            <p className="text-sm font-black text-gray-900 tracking-tight">৳{item.price}</p>
-                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">QTY: {item.quantity || 1}</p>
+                            <p className="text-base font-black text-gray-900 tracking-tight">৳{(item.price || 0).toLocaleString()}</p>
+                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">QTY: {item.quantity || 1}</p>
                          </div>
                       </div>
                     ))}

@@ -66,7 +66,7 @@ const AppPromo = () => {
         </div>
 
         {/* RIGHT IMAGE */}
-        <div className="flex-1 relative min-h-[300px] md:min-h-[400px] lg:min-h-[500px]">
+        <div className="flex-1 relative min-h-[300px] md:min-h-[400px] lg:min-h-[500px] w-full">
           <img 
             src={deliveryMan} 
             alt="Delivery Man" 

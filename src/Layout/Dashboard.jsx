@@ -195,11 +195,9 @@ const Dashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 relative w-full h-full overflow-hidden pt-16 lg:pt-0">
-        <div className="absolute inset-0 overflow-y-auto no-scrollbar">
-          <div className="min-h-full w-full bg-[#f9fafb]">
-            <Outlet />
-          </div>
+      <main className="flex-1 relative w-full h-full bg-[#f9fafb] overflow-y-auto pt-16 lg:pt-0 no-scrollbar">
+        <div className="min-h-full w-full">
+          <Outlet />
         </div>
       </main>
 

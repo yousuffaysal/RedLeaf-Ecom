@@ -7,6 +7,7 @@ import useAuth from '../../hooks/useAuth';
 import useCart from '../../hooks/useCart';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import ProductDetailsModal from './ProductDetailsModal';
+import { useQueryClient, useMutation } from '@tanstack/react-query';
 
 const ProductCard = ({ product, disableHoverAnimation }) => {
   const { title, image, price, originalPrice, discountPercent, unit } = product;
@@ -16,10 +17,46 @@ const ProductCard = ({ product, disableHoverAnimation }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const axiosSecure = useAxiosSecure();
-  const [, refetchCart] = useCart();
-  const [addingToCart, setAddingToCart] = useState(false);
+  const queryClient = useQueryClient();
 
-  const handleAddToCart = async (e) => {
+  const mutation = useMutation({
+    mutationFn: async (cartItem) => {
+      return axiosSecure.post('/carts', cartItem);
+    },
+    onMutate: async (newCartItem) => {
+      // Optimistically update the UI
+      await queryClient.cancelQueries({ queryKey: ['cart', user?.email] });
+      const previousCart = queryClient.getQueryData(['cart', user?.email]);
+      
+      queryClient.setQueryData(['cart', user?.email], (old) => {
+        return [...(old || []), { ...newCartItem, _id: Date.now().toString() }];
+      });
+      
+      // Instantly show success toast so the user isn't blocked
+      Swal.fire({
+        icon: 'success',
+        title: 'Added to Cart',
+        text: `${product.title} synced to your procurement list.`,
+        showConfirmButton: false,
+        timer: 1500,
+        position: 'top-end',
+        toast: true,
+        background: '#fff',
+        customClass: { popup: 'rounded-xl shadow-lg' }
+      });
+      
+      return { previousCart };
+    },
+    onError: (err, newCartItem, context) => {
+      queryClient.setQueryData(['cart', user?.email], context?.previousCart);
+      Swal.fire({ icon: 'error', title: 'Transmission Error', text: 'Failed to sync asset to cart.' });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['cart', user?.email] });
+    }
+  });
+
+  const handleAddToCart = (e) => {
     e.stopPropagation();
     if (!user && location.pathname) {
       Swal.fire({
@@ -36,7 +73,6 @@ const ProductCard = ({ product, disableHoverAnimation }) => {
       return;
     }
     
-    setAddingToCart(true);
     const cartItem = {
       productId: product._id,
       email: user.email,
@@ -47,22 +83,7 @@ const ProductCard = ({ product, disableHoverAnimation }) => {
       unit: product.unit
     };
     
-    try {
-      await axiosSecure.post('/carts', cartItem);
-      Swal.fire({
-        icon: 'success',
-        title: 'Asset Added',
-        text: `${product.title} synced to your procurement list.`,
-        showConfirmButton: false,
-        timer: 1500,
-        position: 'center'
-      });
-      refetchCart();
-    } catch (error) {
-      Swal.fire({ icon: 'error', title: 'Transmission Error', text: 'Failed to sync asset to cart.' });
-    } finally {
-      setAddingToCart(false);
-    }
+    mutation.mutate(cartItem);
   };
 
   return (
@@ -92,10 +113,10 @@ const ProductCard = ({ product, disableHoverAnimation }) => {
           {/* Add to Cart Button */}
           <button
             onClick={handleAddToCart}
-            disabled={addingToCart || product.inStock === false}
+            disabled={mutation.isPending || product.inStock === false}
             className="absolute bottom-3 right-3 w-11 h-11 rounded-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center shadow-lg transition-all active:scale-95 hover:scale-110 disabled:opacity-50 disabled:hover:scale-100"
           >
-            {addingToCart ? (
+            {mutation.isPending ? (
               <span className="animate-spin w-5 h-5 border-2 border-white/30 border-t-white rounded-full" />
             ) : (
               <Plus size={18} strokeWidth={2.5} />

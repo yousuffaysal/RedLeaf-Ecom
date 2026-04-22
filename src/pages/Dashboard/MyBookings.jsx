@@ -1,11 +1,11 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, Package, CheckCircle, Clock, XCircle, Truck, Trash2, Calendar, MapPin } from 'lucide-react';
 import { AuthContext } from '../../Providers/AuthProvider';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
 import useCart from '../../hooks/useCart';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
 
 const statusConfig = {
@@ -20,9 +20,17 @@ const MyBookings = () => {
   const { user } = useContext(AuthContext);
   const axiosSecure = useAxiosSecure();
   const [cart, refetchCart] = useCart();
-  const [tab, setTab] = useState('orders');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const location = useLocation();
+  const [tab, setTab] = useState(location.state?.tab || 'orders');
+
+  useEffect(() => {
+    if (location.state?.tab) {
+      setTab(location.state.tab);
+    }
+  }, [location.state?.tab]);
+
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [showCheckoutForm, setShowCheckoutForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -154,7 +162,7 @@ const MyBookings = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 p-1.5 bg-gray-50 border border-gray-100 rounded-2xl w-fit mb-8 shadow-inner">
+      <div className="flex flex-col sm:flex-row gap-2 p-1.5 bg-gray-50 border border-gray-100 rounded-2xl w-full sm:w-fit mb-8 shadow-inner overflow-hidden">
         {[{key:'orders',label:`Purchase History (${orders.length})`},{key:'cart',label:`Active Cart (${cart.length})`}].map(t=>(
           <button
             key={t.key}
@@ -258,9 +266,9 @@ const MyBookings = () => {
             </div>
           ) : showCheckoutForm ? (
             <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-6 lg:p-8">
-              <div className="flex items-center justify-between mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
                 <h3 className="text-2xl font-black text-gray-900 tracking-tight">Checkout Form</h3>
-                <button onClick={() => setShowCheckoutForm(false)} className="text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">← Back to Cart</button>
+                <button onClick={() => setShowCheckoutForm(false)} className="text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest text-left sm:text-right">← Back to Cart</button>
               </div>
               <form onSubmit={executeCheckout} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -291,8 +299,8 @@ const MyBookings = () => {
                   <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Order Notes (Optional)</label>
                   <textarea name="notes" value={formData.notes} onChange={handleInputChange} rows={2} className="w-full px-4 py-3 rounded-xl border border-gray-100 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-50 transition-all font-semibold text-sm resize-none" placeholder="Special delivery instructions..." />
                 </div>
-                <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
-                  <p className="font-black text-gray-900 text-xl tracking-tight">Total Price: <span className="text-red-600">৳{cartTotal.toLocaleString()}</span></p>
+                <div className="pt-6 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <p className="font-black text-gray-900 text-xl tracking-tight text-center sm:text-left">Total Price: <span className="text-red-600">৳{cartTotal.toLocaleString()}</span></p>
                   <button 
                     type="submit"
                     disabled={isCheckingOut}
@@ -338,7 +346,7 @@ const MyBookings = () => {
                   </motion.div>
                 ))}
               </div>
-              <div className="p-6 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between rounded-b-2xl">
+              <div className="p-6 bg-gray-50/50 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-b-2xl">
                 <p className="font-black text-gray-900 text-xl tracking-tight">Total Price: <span className="text-red-600">৳{cartTotal.toLocaleString()}</span></p>
                 <button 
                   onClick={handleCheckout}

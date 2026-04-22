@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
-import { Search, ShoppingCart, User, Menu } from 'lucide-react';
+import React, { useContext, useState } from 'react';
+import { Search, ShoppingCart, User, Menu, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../Providers/AuthProvider';
 import useCart from '../../hooks/useCart';
@@ -8,6 +8,16 @@ const Navbar = () => {
   const { user, logOut } = useContext(AuthContext);
   const [cart] = useCart();
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
 
   const handleLogout = () => {
     logOut().then(() => {
@@ -33,7 +43,10 @@ const Navbar = () => {
         <div className="relative w-full px-4 md:px-8 py-1 flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-2">
-            <button className="md:hidden p-1 text-gray-800 mr-2">
+            <button 
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="md:hidden p-1 text-gray-800 mr-2"
+            >
               <Menu className="w-6 h-6" />
             </button>
             <Link to="/" className="flex items-center gap-2 md:mr-4">
@@ -47,16 +60,18 @@ const Navbar = () => {
 
           {/* Search Bar (Desktop) */}
           <div className="hidden md:flex flex-1 max-w-2xl mx-8 relative">
-            <div className="w-full relative group">
+            <form onSubmit={handleSearch} className="w-full relative group">
               <input 
                 type="text" 
                 placeholder="পণ্য খুঁজুন..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full py-2.5 pl-5 pr-12 rounded-full text-gray-800 bg-white border-2 border-transparent focus:border-red-400 focus:outline-none shadow-sm transition-all text-sm font-medium"
               />
-              <button className="absolute right-0 top-0 h-full px-4 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors">
+              <button type="submit" className="absolute right-0 top-0 h-full px-4 bg-red-500 hover:bg-red-600 text-white rounded-full transition-colors">
                 <Search className="w-5 h-5" />
               </button>
-            </div>
+            </form>
           </div>
 
           {/* Action Icons */}
@@ -97,7 +112,7 @@ const Navbar = () => {
                </Link>
             )}
 
-            <Link to="/dashboard/my-bookings" className="flex items-center gap-2 hover:text-red-600 transition-colors relative group">
+            <Link to="/dashboard/my-bookings" state={{ tab: 'cart' }} className="flex items-center gap-2 hover:text-red-600 transition-colors relative group">
               <div className="p-2 bg-gray-200/50 rounded-full group-hover:bg-gray-200 transition-colors relative">
                 <ShoppingCart className="w-5 h-5 text-gray-700" />
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] sm:text-xs font-bold px-1.5 py-0.5 rounded-full ring-2 ring-[#F8F9FA]">
@@ -111,16 +126,18 @@ const Navbar = () => {
 
         {/* Mobile Search Bar - Visible only on small screens */}
         <div className="md:hidden px-4 pb-3">
-          <div className="w-full relative">
+          <form onSubmit={handleSearch} className="w-full relative">
             <input 
               type="text" 
               placeholder="পণ্য খুঁজুন..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full py-2 pl-4 pr-10 rounded-full text-gray-800 bg-white border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
             />
-            <button className="absolute right-0 top-0 h-full px-3 bg-red-500 text-white rounded-full transition-colors">
+            <button type="submit" className="absolute right-0 top-0 h-full px-3 bg-red-500 text-white rounded-full transition-colors">
                <Search className="w-4 h-4" />
             </button>
-          </div>
+          </form>
         </div>
       </div>
 
@@ -139,6 +156,45 @@ const Navbar = () => {
           </nav>
         </div>
       </div>
+
+      {/* Mobile Menu Drawer */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-[100] bg-gray-900/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}>
+          <div 
+            className="absolute top-0 left-0 w-[280px] h-full bg-white shadow-2xl flex flex-col transform transition-transform duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-red-50/50">
+              <img 
+                src="https://ik.imagekit.io/2lax2ytm2/Logo-v1%20(1).png" 
+                alt="Redleaf-BD Logo" 
+                className="h-10 w-auto object-contain"
+              />
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 bg-white rounded-full text-gray-500 hover:text-red-600 shadow-sm">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto py-4">
+              <nav className="flex flex-col gap-2 px-4">
+                <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className="py-3 px-4 rounded-xl text-sm font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">Products</Link>
+                <Link to="/impact" onClick={() => setIsMobileMenuOpen(false)} className="py-3 px-4 rounded-xl text-sm font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">Impact Stories</Link>
+                <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="py-3 px-4 rounded-xl text-sm font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">Blog</Link>
+                <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="py-3 px-4 rounded-xl text-sm font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">About Us</Link>
+                <Link to="/contact" onClick={() => setIsMobileMenuOpen(false)} className="py-3 px-4 rounded-xl text-sm font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors">Contact Us</Link>
+              </nav>
+
+              {!user && (
+                <div className="mt-8 px-4 pt-4 border-t border-gray-100">
+                  <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center justify-center gap-2 w-full py-3 bg-gray-900 text-white rounded-xl text-sm font-bold">
+                    <User className="w-4 h-4" /> Login / Register
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

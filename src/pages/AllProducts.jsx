@@ -27,10 +27,10 @@ const categories = [
 const AllProducts = () => {
   const axiosPublic = useAxiosPublic();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('search') || '');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Handle category from URL search params
+  // Handle category and search from URL search params
   useEffect(() => {
     const cat = searchParams.get('cat');
     if (cat) {
@@ -38,20 +38,60 @@ const AllProducts = () => {
     } else {
       setSelectedCategory('all');
     }
+
+    const querySearch = searchParams.get('search');
+    if (querySearch !== null) {
+      setSearch(querySearch);
+    }
   }, [searchParams]);
 
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 500);
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const { data: result = { products: [] }, isLoading } = useQuery({
-    queryKey: ['public-products', search, selectedCategory],
+    queryKey: ['public-products', debouncedSearch, selectedCategory],
     queryFn: async () => {
       const catObj = categories.find(c => c.slug === selectedCategory);
       const backendCategory = catObj ? catObj.name : selectedCategory;
       const categoryParam = selectedCategory !== 'all' ? `&category=${encodeURIComponent(backendCategory)}` : '';
-      const res = await axiosPublic.get(`/products?search=${search}${categoryParam}&limit=100`);
+      const res = await axiosPublic.get(`/products?limit=100${categoryParam}`);
       return res.data || { products: [] };
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const products = result.products || [];
+  const rawProducts = result.products || [];
+
+  const products = rawProducts.filter(p => {
+    if (!debouncedSearch) return true;
+    const term = debouncedSearch.toLowerCase().trim();
+    
+    const dict = {
+      'honey': 'মধু', 'meat': 'গোশত', 'beef': 'গরু', 'chicken': 'মুরগি', 'rice': 'চাল',
+      'oil': 'তেল', 'spice': 'মসলা', 'tea': 'চা', 'ghee': 'ঘি', 'milk': 'দুধ', 'mango': 'আম',
+      'pickle': 'আচার', 'date': 'খেজুর', 'nut': 'বাদাম', 'water': 'পানি', 'sugar': 'চিনি',
+      'salt': 'লবণ', 'egg': 'ডিম', 'fish': 'মাছ', 'veg': 'সবজি', 'fruit': 'ফল', 'cow': 'গরু'
+    };
+    
+    let translatedTerm = term;
+    for (const [en, bn] of Object.entries(dict)) {
+      if (term.includes(en)) {
+        translatedTerm = bn;
+        break;
+      }
+    }
+
+    return (
+      (p.title && p.title.toLowerCase().includes(term)) ||
+      (p.title && p.title.includes(translatedTerm)) ||
+      (p.category && p.category.toLowerCase().includes(term)) ||
+      (p.description && p.description.toLowerCase().includes(term))
+    );
+  });
 
   const handleCategorySelect = (slug) => {
     setSelectedCategory(slug);
@@ -98,7 +138,16 @@ const AllProducts = () => {
                   type="text"
                   placeholder="Search products..."
                   value={search}
-                  onChange={e => setSearch(e.target.value)}
+                  onChange={e => {
+                    setSearch(e.target.value);
+                    const newParams = new URLSearchParams(searchParams);
+                    if (e.target.value) {
+                      newParams.set('search', e.target.value);
+                    } else {
+                      newParams.delete('search');
+                    }
+                    setSearchParams(newParams, { replace: true });
+                  }}
                   className="w-full pl-14 pr-6 py-4 rounded-2xl border-none bg-yellow-400 shadow-xl focus:outline-none focus:ring-4 focus:ring-yellow-300 ring-0 transition-all text-sm font-black text-gray-900 placeholder:text-gray-700"
                 />
               </div>
@@ -186,7 +235,7 @@ const AllProducts = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.3 }}
-                  className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6 px-4 md:px-0"
+                  className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6 px-4 md:px-0"
                 >
                   {products.map(product => (
                     <ProductCard key={product._id} product={product} />
