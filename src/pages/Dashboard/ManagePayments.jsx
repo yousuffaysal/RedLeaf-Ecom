@@ -8,11 +8,11 @@ import Swal from 'sweetalert2';
 const STATUS_OPTIONS = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
 
 const statusConfig = {
-  pending:    { label: 'Pending Review',   icon: Clock,       cls: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
-  processing: { label: 'In Processing',    icon: RefreshCw,   cls: 'bg-amber-50 text-amber-700 border-amber-200' },
-  shipped:    { label: 'Dispatched',       icon: Truck,       cls: 'bg-red-50 text-red-700 border-red-200' },
-  delivered:  { label: 'Delivered',        icon: CheckCircle, cls: 'bg-green-50 text-green-700 border-green-200' },
-  cancelled:  { label: 'Cancelled',        icon: XCircle,     cls: 'bg-gray-50 text-gray-500 border-gray-200' },
+  pending:    { label: 'Pending',      icon: Clock,       cls: 'bg-yellow-50 text-yellow-700 border-yellow-200' },
+  processing: { label: 'Processing',   icon: RefreshCw,   cls: 'bg-amber-50 text-amber-700 border-amber-200' },
+  shipped:    { label: 'Shipped',      icon: Truck,       cls: 'bg-red-50 text-red-700 border-red-200' },
+  delivered:  { label: 'Delivered',    icon: CheckCircle, cls: 'bg-green-50 text-green-700 border-green-200' },
+  cancelled:  { label: 'Cancelled',    icon: XCircle,     cls: 'bg-gray-50 text-gray-500 border-gray-200' },
 };
 
 const ManagePayments = () => {
@@ -50,7 +50,7 @@ const ManagePayments = () => {
       await refetch();
       Swal.fire({ 
         icon: 'success', 
-        title: 'Manifest Synced', 
+        title: 'Status Updated', 
         showConfirmButton: false, 
         timer: 1400,
         background: '#fff',
