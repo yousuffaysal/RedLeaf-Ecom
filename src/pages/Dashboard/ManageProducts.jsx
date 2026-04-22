@@ -68,7 +68,7 @@ const ManageProducts = () => {
         customClass: { popup: 'rounded-3xl shadow-xl' }
       });
     } catch {
-      Swal.fire({ icon: 'error', title: 'Action Failed', confirmButtonColor: '#e63946' });
+      Swal.fire({ icon: 'error', title: 'Action Failed', confirmButtonColor: '#dc2626' });
     } finally {
       setSaving(false);
     }
@@ -80,7 +80,7 @@ const ManageProducts = () => {
       text: `"${product.title}" will be permanently removed.`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#e63946',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#6b7280',
       confirmButtonText: 'Yes, delete it',
       background: '#fff',

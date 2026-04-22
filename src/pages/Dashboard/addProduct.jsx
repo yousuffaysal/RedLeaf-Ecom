@@ -36,7 +36,7 @@ const AddProduct = () => {
         title: 'Validation Failed', 
         text: 'Certain fields require attention (*)', 
         icon: 'error', 
-        confirmButtonColor: '#e63946',
+        confirmButtonColor: '#dc2626',
         background: '#fff',
         customClass: { popup: 'rounded-3xl' }
       });
@@ -63,7 +63,7 @@ const AddProduct = () => {
         title: 'Listing Published', 
         text: `"${form.title}" is now live in the store.`,
         showConfirmButton: true,
-        confirmButtonColor: '#e63946',
+        confirmButtonColor: '#dc2626',
         confirmButtonText: 'Return to Inventory',
         background: '#fff',
         customClass: { popup: 'rounded-3xl' }
@@ -75,7 +75,7 @@ const AddProduct = () => {
         }
       });
     } catch {
-      Swal.fire({ icon: 'error', title: 'Publication Halted', confirmButtonColor: '#e63946' });
+      Swal.fire({ icon: 'error', title: 'Publication Halted', confirmButtonColor: '#dc2626' });
     } finally {
       setSaving(false);
     }

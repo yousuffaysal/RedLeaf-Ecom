@@ -37,7 +37,7 @@ const ShowContactData = () => {
           text: 'Unable to connect to contact records.',
           icon: 'error',
           confirmButtonText: 'Retry',
-          confirmButtonColor: '#e63946',
+          confirmButtonColor: '#dc2626',
           background: "#fff",
           customClass: { popup: 'rounded-[32px]' }
         });
@@ -68,7 +68,7 @@ const ShowContactData = () => {
       text: `Message from "${name}" will be permanently removed.`,
       icon: 'warning',
       showCancelButton: true,
-      confirmButtonColor: '#e63946',
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: '#6b7280',
       confirmButtonText: 'Yes, delete',
       background: "#fff",
@@ -90,7 +90,7 @@ const ShowContactData = () => {
           customClass: { popup: 'rounded-3xl' }
         });
       } catch {
-        Swal.fire({ title: 'Action Failed', icon: 'error', confirmButtonColor: '#e63946' });
+        Swal.fire({ title: 'Action Failed', icon: 'error', confirmButtonColor: '#dc2626' });
       }
     }
   };

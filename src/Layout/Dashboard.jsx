@@ -37,7 +37,7 @@ const Dashboard = () => {
       text: "You will be signed out of your account.",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#e63946",
+      confirmButtonColor: '#dc2626',
       cancelButtonColor: "#6b7280",
       confirmButtonText: "Yes, logout",
       background: "#fff",

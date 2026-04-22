@@ -22,6 +22,7 @@ function Home() {
         <CategorySection
           title="Poultry & Meat"
           categorySlug="meat"
+          dbCategory="Poultry & Meat"
           bgStyle={{ background: 'linear-gradient(135deg, #fff5f5 0%, #ffffff 50%, #fff8f0 100%)' }}
         />
 
@@ -29,6 +30,7 @@ function Home() {
         <CategorySection
           title="Super Foods"
           categorySlug="superfoods"
+          dbCategory="Super Foods"
           bgStyle={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #ffffff 50%, #fff8f0 100%)' }}
           accentFrom="#16a34a"
           accentTo="#22c55e"
@@ -38,6 +40,7 @@ function Home() {
         <CategorySection
           title="Tea, Snacks & Drinks"
           categorySlug="tea"
+          dbCategory="Tea & Snacks"
           bgStyle={{ background: 'linear-gradient(135deg, #fff8f0 0%, #ffffff 50%, #fef2f2 100%)' }}
           accentFrom="#ea580c"
           accentTo="#f59e0b"
@@ -47,6 +50,7 @@ function Home() {
         <CategorySection
           title="Fruits & Vegetables"
           categorySlug="fruits"
+          dbCategory="Fruits & Veg"
           bgStyle={{ background: 'linear-gradient(135deg, #f0fdf4 0%, #ffffff 50%, #ecfdf5 100%)' }}
           accentFrom="#16a34a"
           accentTo="#4ade80"

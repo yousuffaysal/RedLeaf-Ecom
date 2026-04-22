@@ -5,13 +5,15 @@ import useAxiosPublic from '../../hooks/useAxiosPublic';
 import ProductCard from '../Shared/ProductCard';
 import { Loader2, ChevronRight } from 'lucide-react';
 
-const CategorySection = ({ title, categorySlug, bgStyle, accentFrom = '#dc2626', accentTo = '#ea580c' }) => {
+const CategorySection = ({ title, categorySlug, dbCategory, bgStyle, accentFrom = '#dc2626', accentTo = '#ea580c' }) => {
   const axiosPublic = useAxiosPublic();
 
   const { data: result = { products: [] }, isLoading } = useQuery({
     queryKey: ['category-products', categorySlug],
     queryFn: async () => {
-      const res = await axiosPublic.get(`/products?cat=${categorySlug}&limit=6`);
+      // Use exact dbCategory if provided, otherwise fallback to title
+      const backendCategory = dbCategory || title;
+      const res = await axiosPublic.get(`/products?category=${encodeURIComponent(backendCategory)}&limit=6`);
       return res.data || { products: [] };
     },
   });

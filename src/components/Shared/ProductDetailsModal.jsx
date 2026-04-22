@@ -34,7 +34,7 @@ const ProductDetailsModal = ({ product, onClose }) => {
     queryKey: ['related-products', product?.category, product?._id],
     queryFn: async () => {
       try {
-        const res = await axiosPublic.get(`/products?category=${product.category}&limit=5`);
+        const res = await axiosPublic.get(`/products?category=${encodeURIComponent(product.category)}&limit=5`);
         return (res.data?.products || []).filter(p => p._id !== product._id).slice(0, 4);
       } catch (err) { return []; }
     },

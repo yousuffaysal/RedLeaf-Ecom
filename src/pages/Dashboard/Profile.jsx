@@ -43,7 +43,7 @@ const Profile = () => {
         customClass: { popup: 'rounded-3xl shadow-xl' }
       });
     } catch {
-      Swal.fire({ icon: 'error', title: 'Update Failed', confirmButtonColor: '#e63946' });
+      Swal.fire({ icon: 'error', title: 'Update Failed', confirmButtonColor: '#dc2626' });
     } finally {
       setSaving(false);
     }

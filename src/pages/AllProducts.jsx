@@ -43,7 +43,9 @@ const AllProducts = () => {
   const { data: result = { products: [] }, isLoading } = useQuery({
     queryKey: ['public-products', search, selectedCategory],
     queryFn: async () => {
-      const categoryParam = selectedCategory !== 'all' ? `&category=${selectedCategory}` : '';
+      const catObj = categories.find(c => c.slug === selectedCategory);
+      const backendCategory = catObj ? catObj.name : selectedCategory;
+      const categoryParam = selectedCategory !== 'all' ? `&category=${encodeURIComponent(backendCategory)}` : '';
       const res = await axiosPublic.get(`/products?search=${search}${categoryParam}&limit=100`);
       return res.data || { products: [] };
     },

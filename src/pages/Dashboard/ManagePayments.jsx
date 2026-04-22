@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, CheckCircle, Clock, XCircle, Truck, ChevronDown, Search, RefreshCw, DollarSign } from 'lucide-react';
+import { Package, CheckCircle, Clock, XCircle, Truck, ChevronDown, Search, RefreshCw, DollarSign, Eye, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import useAxiosSecure from '../../hooks/useAxiosSecure';
@@ -20,6 +20,7 @@ const ManagePayments = () => {
   const [search, setSearch]       = useState('');
   const [filterStatus, setFilter] = useState('all');
   const [updating, setUpdating]   = useState(null);
+  const [viewOrderInfo, setViewOrderInfo] = useState(null);
 
   const { data: orders = [], isLoading, refetch } = useQuery({
     queryKey: ['admin-orders'],
@@ -56,7 +57,7 @@ const ManagePayments = () => {
         customClass: { popup: 'rounded-2xl shadow-xl border border-gray-50' }
       });
     } catch {
-      Swal.fire({ icon: 'error', title: 'Action Failed', confirmButtonColor: '#e63946' });
+      Swal.fire({ icon: 'error', title: 'Action Failed', confirmButtonColor: '#dc2626' });
     } finally {
       setUpdating(null);
     }
@@ -75,8 +76,8 @@ const ManagePayments = () => {
              <Truck className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-900 tracking-tight uppercase">Order Fulfillment Ledger</h2>
-            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Pipeline Analytics: {orders.length} Active Transitions</p>
+            <h2 className="text-xl font-bold text-gray-900 tracking-tight uppercase">Manage Orders</h2>
+            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Total Orders: {orders.length}</p>
           </div>
         </div>
         <button 
@@ -84,17 +85,17 @@ const ManagePayments = () => {
           className="flex items-center gap-2 bg-white hover:bg-red-50 text-gray-900 px-5 py-3 rounded-xl text-[9px] font-bold uppercase tracking-widest transition-all border border-gray-100 shadow-sm"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} /> 
-          Refresh Registry
+          Refresh Orders
         </button>
       </div>
 
       {/* High-Density Stats Hub */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Overall Volume', value: orders.length, icon: Package, color: 'from-gray-800 to-gray-900' },
+          { label: 'Total Orders', value: orders.length, icon: Package, color: 'from-gray-800 to-gray-900' },
           { label: 'Cumulative Revenue', value: `৳${totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'from-red-600 to-red-700' },
           { label: 'Awaiting Action', value: orders.filter(o=>o.status==='pending').length, icon: Clock, color: 'from-amber-400 to-amber-500' },
-          { label: 'Fulfillment Cap', value: orders.filter(o=>o.status==='delivered').length, icon: CheckCircle, color: 'from-gray-900 to-black' },
+          { label: 'Delivered', value: orders.filter(o=>o.status==='delivered').length, icon: CheckCircle, color: 'from-gray-900 to-black' },
         ].map((s, i) => (
           <div
             key={i}
@@ -115,7 +116,7 @@ const ManagePayments = () => {
           <Search className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
           <input
             type="text"
-            placeholder="Filter Ledger by ID, Email or Name..."
+            placeholder="Filter Orders by ID, Email or Name..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full pl-12 pr-6 py-3.5 rounded-xl border border-gray-100 text-xs font-semibold text-gray-800 focus:outline-none focus:ring-4 focus:ring-red-50 focus:border-red-600 transition-all placeholder:text-gray-300"
@@ -126,7 +127,7 @@ const ManagePayments = () => {
           onChange={e => setFilter(e.target.value)}
           className="px-5 py-3.5 rounded-xl border border-gray-100 text-[9px] font-bold uppercase tracking-widest text-gray-500 focus:outline-none focus:ring-4 focus:ring-red-50 bg-white"
         >
-          <option value="all">Pipeline Scope: All</option>
+          <option value="all">Filter Status: All</option>
           {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s.toUpperCase()}</option>)}
         </select>
       </div>
@@ -139,7 +140,7 @@ const ManagePayments = () => {
       ) : filteredOrders.length === 0 ? (
         <div className="bg-white rounded-2xl border border-dashed border-gray-100 py-20 text-center">
           <Package className="h-10 w-10 text-gray-200 mx-auto mb-3" />
-          <p className="text-sm font-bold text-gray-900 uppercase tracking-tight">Zero Matches Logged</p>
+          <p className="text-sm font-bold text-gray-900 uppercase tracking-tight">No Orders Found</p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl border border-gray-50 shadow-xl overflow-hidden">
@@ -147,7 +148,7 @@ const ManagePayments = () => {
             <table className="w-full">
               <thead className="bg-gray-50/70">
                 <tr>
-                  {['#', 'Manifest ID', 'Stakeholder Attribution', 'Yield', 'Registration', 'Fulfillment', 'Command'].map(h => (
+                  {['#', 'Order ID', 'Customer Info', 'Delivery Location', 'Total Amount', 'Date', 'Status', 'Action'].map(h => (
                     <th key={h} className="px-5 py-3.5 text-left text-[8px] font-bold text-gray-400 uppercase tracking-widest">{h}</th>
                   ))}
                 </tr>
@@ -174,6 +175,10 @@ const ManagePayments = () => {
                           <p className="font-bold text-gray-900 text-[11px] truncate max-w-[130px] leading-tight">{order.customerName || 'Agent ID Redacted'}</p>
                           <p className="text-[9px] text-gray-400 font-medium truncate max-w-[130px] mt-0.5 tracking-tighter">{order.email}</p>
                         </td>
+                        <td className="px-5 py-3 hidden md:table-cell">
+                          <p className="font-bold text-gray-900 text-[11px] truncate max-w-[100px] leading-tight flex items-center gap-1.5">{order.city || 'Regional'}</p>
+                          <p className="text-[9px] text-gray-400 font-medium truncate max-w-[130px] mt-0.5 tracking-tighter">{order.address || order.deliveryAddress || 'Address Pending'}</p>
+                        </td>
                         <td className="px-5 py-3">
                            <p className="font-bold text-gray-900 text-[11px] tracking-tighter">৳{(order.totalAmount || 0).toLocaleString()}</p>
                            <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">{order.items?.length || 0} Assets</p>
@@ -188,18 +193,27 @@ const ManagePayments = () => {
                           </span>
                         </td>
                         <td className="px-5 py-3">
-                          <div className="relative group/select w-36">
-                            <select
-                              value={order.status}
-                              onChange={e => handleStatusUpdate(order._id, e.target.value)}
-                              disabled={updating === order._id}
-                              className="w-full pl-2 pr-6 py-2 text-[8px] font-bold uppercase tracking-widest rounded-lg border border-gray-100 text-gray-400 focus:outline-none focus:border-red-600 appearance-none bg-white cursor-pointer transition-all"
+                          <div className="flex items-center gap-2">
+                            <div className="relative group/select w-32 border border-gray-100 rounded-lg overflow-hidden shrink-0">
+                              <select
+                                value={order.status}
+                                onChange={e => handleStatusUpdate(order._id, e.target.value)}
+                                disabled={updating === order._id}
+                                className="w-full pl-2 pr-6 py-2 text-[8px] font-bold uppercase tracking-widest text-gray-500 focus:outline-none focus:border-red-600 appearance-none bg-white cursor-pointer transition-all border-none"
+                              >
+                                {STATUS_OPTIONS.map(s => (
+                                  <option key={s} value={s}>{s.toUpperCase()}</option>
+                                ))}
+                              </select>
+                              <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                            </div>
+                            <button
+                              onClick={() => setViewOrderInfo(order)}
+                              className="p-1.5 rounded-lg border border-gray-100 text-gray-500 hover:text-red-600 hover:border-red-200 hover:bg-red-50 transition-all shrink-0"
+                              title="View Order Intelligence"
                             >
-                              {STATUS_OPTIONS.map(s => (
-                                <option key={s} value={s}>{s.toUpperCase()}</option>
-                              ))}
-                            </select>
-                            <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-300" />
+                              <Eye size={16} />
+                            </button>
                           </div>
                         </td>
                       </motion.tr>
@@ -211,11 +225,82 @@ const ManagePayments = () => {
           </div>
           <div className="px-6 py-3 bg-gray-50/30 border-t border-gray-50">
             <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest text-center">
-               Manifest Integrity: {filteredOrders.length} Attributed / {orders.length} Global Entries detected.
+               Showing {filteredOrders.length} out of {orders.length} total orders.
             </p>
           </div>
         </div>
       )}
+
+      {/* Details Modal */}
+      <AnimatePresence>
+        {viewOrderInfo && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 lg:p-10"
+            onClick={() => setViewOrderInfo(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              className="bg-white rounded-[24px] shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]"
+              onClick={e => e.stopPropagation()}
+            >
+                <div className="p-6 md:p-8 bg-gray-50 flex justify-between items-start border-b border-gray-100 shrink-0">
+                  <div>
+                    <h3 className="text-xl font-black text-gray-900 tracking-tight">Order Details</h3>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Order ID: {viewOrderInfo._id}</p>
+                  </div>
+                  <button onClick={() => setViewOrderInfo(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors text-gray-500"><X size={20}/></button>
+                </div>
+                
+                <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8 overflow-y-auto no-scrollbar relative shrink">
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-red-400"></span> Customer Details</h4>
+                    <div className="space-y-4">
+                      <div><p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Full Name</p><p className="font-semibold text-gray-900 text-sm">{viewOrderInfo.customerName || 'N/A'}</p></div>
+                      <div><p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Email</p><p className="font-semibold text-gray-900 text-sm break-all">{viewOrderInfo.email}</p></div>
+                      <div><p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</p><p className="font-semibold text-gray-900 text-sm">{viewOrderInfo.phone || 'N/A'} {viewOrderInfo.altPhone && <span className="text-gray-400 text-xs">/ {viewOrderInfo.altPhone}</span>}</p></div>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> Delivery Information</h4>
+                    <div className="space-y-4">
+                      <div><p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">City / Zone</p><p className="font-semibold text-gray-900 text-sm">{viewOrderInfo.city || 'N/A'}</p></div>
+                      <div><p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Full Address</p><p className="font-semibold text-gray-900 text-sm leading-snug">{viewOrderInfo.address || viewOrderInfo.deliveryAddress || 'N/A'}</p></div>
+                      {viewOrderInfo.notes && (
+                         <div><p className="text-[9px] font-bold text-amber-500 uppercase tracking-widest">Special Notes</p><p className="font-semibold text-gray-800 text-sm bg-amber-50 p-3 rounded-xl border border-amber-100/50 italic leading-snug">{viewOrderInfo.notes}</p></div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 md:p-8 bg-gray-50/50 border-t border-gray-100 overflow-y-auto no-scrollbar shrink-0 min-h-[150px] max-h-[30vh]">
+                  <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                     <span className="bg-gray-200 text-gray-500 px-2 py-0.5 rounded-md text-[9px]">{viewOrderInfo.items?.length || 0}</span> Order Items
+                  </h4>
+                  <div className="space-y-3">
+                    {viewOrderInfo.items?.map((item, i) => (
+                      <div key={i} className="flex justify-between items-center py-3 border-b border-gray-100/50 last:border-0 last:pb-0">
+                         <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center p-1.5 shadow-sm"><img src={item.image} className="w-full h-full object-contain mix-blend-multiply" /></div>
+                            <div>
+                              <p className="text-sm font-bold text-gray-900">{item.title}</p>
+                              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">{item.unit || 'Standard'}</p>
+                            </div>
+                         </div>
+                         <div className="text-right">
+                            <p className="text-sm font-black text-gray-900 tracking-tight">৳{item.price}</p>
+                            <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">QTY: {item.quantity || 1}</p>
+                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };

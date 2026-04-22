@@ -24,6 +24,20 @@ const MyBookings = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [showCheckoutForm, setShowCheckoutForm] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: user?.displayName || '',
+    phone: '',
+    altPhone: '',
+    address: '',
+    city: '',
+    notes: ''
+  });
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
 
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ['my-orders', user?.email],
@@ -56,56 +70,50 @@ const MyBookings = () => {
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
+    setShowCheckoutForm(true);
+  };
 
-    Swal.fire({
-      title: 'Checkout',
-      text: 'Please enter your delivery address:',
-      input: 'textarea',
-      inputPlaceholder: '123 Main St, City, Country...',
-      showCancelButton: true,
-      confirmButtonText: 'Execute Order',
-      confirmButtonColor: '#111827',
-      cancelButtonColor: '#6b7280',
-      showLoaderOnConfirm: true,
-      preConfirm: async (address) => {
-        if (!address) {
-          Swal.showValidationMessage('Delivery address is required');
-          return false;
-        }
-        
-        setIsCheckingOut(true);
-        const orderData = {
-          email: user?.email,
-          items: cart,
-          totalAmount: cartTotal,
-          deliveryAddress: address
-        };
+  const executeCheckout = async (e) => {
+    e.preventDefault();
+    if (cart.length === 0) return;
+    
+    setIsCheckingOut(true);
+    const orderData = {
+      email: user?.email,
+      customerName: formData.fullName,
+      phone: formData.phone,
+      altPhone: formData.altPhone,
+      deliveryAddress: formData.address + (formData.city ? `, ${formData.city}` : ''),
+      address: formData.address,
+      city: formData.city,
+      notes: formData.notes,
+      items: cart,
+      totalAmount: cartTotal,
+    };
 
-        try {
-          const res = await axiosSecure.post('/orders', orderData);
-          if (res.data.insertedId) {
-            await refetchCart();
-            await queryClient.invalidateQueries({ queryKey: ['my-orders', user?.email] });
-            setTab('orders');
-            return true;
-          }
-        } catch (error) {
-          Swal.showValidationMessage(`Request failed: ${error.message}`);
-        } finally {
-          setIsCheckingOut(false);
-        }
-      },
-      allowOutsideClick: () => !Swal.isLoading()
-    }).then((result) => {
-      if (result.isConfirmed) {
+    try {
+      const res = await axiosSecure.post('/orders', orderData);
+      if (res.data.insertedId) {
         Swal.fire({
           icon: 'success',
-          title: 'Procurement Initialized!',
-          text: 'Order successfully logged into the fulfillment queue.',
-          confirmButtonColor: '#111827'
+          title: 'Order Confirmed!',
+          text: 'Your order has been successfully placed.',
+          confirmButtonColor: '#dc2626'
         });
+        await refetchCart();
+        await queryClient.invalidateQueries({ queryKey: ['my-orders', user?.email] });
+        setShowCheckoutForm(false);
+        setTab('orders');
       }
-    });
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Checkout Failed',
+        text: `Request failed: ${error.message}`
+      });
+    } finally {
+      setIsCheckingOut(false);
+    }
   };
 
   const handlePay = (order) => {
@@ -120,8 +128,8 @@ const MyBookings = () => {
           <ShoppingBag className="h-6 w-6 text-red-600" />
         </div>
         <div>
-          <h2 className="text-3xl font-black text-gray-900 tracking-tight">Order Ledger</h2>
-          <p className="text-sm font-medium text-gray-500 mt-1">Track your active procurements and fulfillment status</p>
+          <h2 className="text-3xl font-black text-gray-900 tracking-tight">My Orders</h2>
+          <p className="text-sm font-medium text-gray-500 mt-1">Track your recent orders and their delivery status</p>
         </div>
       </div>
 
@@ -136,7 +144,7 @@ const MyBookings = () => {
           <p className="text-2xl font-extrabold text-red-600">৳{totalSpent.toLocaleString()}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Cart Volume</p>
+          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Cart Items</p>
           <p className="text-2xl font-black text-gray-900">{cart.length}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
@@ -168,10 +176,10 @@ const MyBookings = () => {
           ) : orders.length === 0 ? (
             <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center shadow-sm">
               <ShoppingBag className="h-20 w-20 text-gray-100 mx-auto mb-6" />
-              <p className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Ledger Empty</p>
-              <p className="text-gray-500 text-sm mb-8 font-medium">Your purchase history is currently empty. Initialize a new procurement strategy.</p>
+              <p className="text-2xl font-black text-gray-900 mb-2 tracking-tight">No Orders Yet</p>
+              <p className="text-gray-500 text-sm mb-8 font-medium">You haven't placed any orders yet.</p>
               <Link to="/" className="inline-flex items-center justify-center bg-gray-900 px-8 py-3.5 rounded-2xl transition-all shadow-xl shadow-gray-200 hover:bg-black group">
-                <span className="text-white group-hover:text-white text-xs uppercase font-black tracking-widest">Explore Catalog</span>
+                <span className="text-white group-hover:text-white text-xs uppercase font-black tracking-widest">Browse Products</span>
               </Link>
             </div>
           ) : (
@@ -216,13 +224,13 @@ const MyBookings = () => {
                         </div>
                         <div className="text-right shrink-0 flex flex-col items-end justify-center">
                           <p className="text-2xl font-black text-gray-900 tracking-tight">৳{(order.totalAmount||0).toLocaleString()}</p>
-                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{order.items?.length||0} units allocated</p>
+                          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{order.items?.length||0} items ordered</p>
                           {order.status === 'pending' && (
                             <button 
                               onClick={() => handlePay(order)} 
                               className="mt-4 bg-red-600 hover:bg-red-700 text-white px-8 py-2.5 rounded-xl text-xs uppercase font-black tracking-widest transition-all shadow-lg shadow-red-100"
                             >
-                              Fulfill Payment
+                              Pay Now
                             </button>
                           )}
                         </div>
@@ -242,14 +250,63 @@ const MyBookings = () => {
           {cart.length === 0 ? (
             <div className="bg-white rounded-3xl border border-gray-100 p-16 text-center shadow-sm">
               <ShoppingBag className="h-20 w-20 text-gray-100 mx-auto mb-6" />
-              <p className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Staging Area Empty</p>
-              <p className="text-gray-500 text-sm font-medium mb-8">You haven't added any assets to your procurement cart yet.</p>
+              <p className="text-2xl font-black text-gray-900 mb-2 tracking-tight">Your Cart is Empty</p>
+              <p className="text-gray-500 text-sm font-medium mb-8">You haven't added any products to your cart yet.</p>
               <Link to="/" className="inline-flex items-center justify-center bg-gray-900 px-8 py-3.5 rounded-2xl transition-all shadow-xl shadow-gray-200 hover:bg-black group">
-                <span className="text-white group-hover:text-white text-xs uppercase font-black tracking-widest">Browse Asset Catalog</span>
+                <span className="text-white group-hover:text-white text-xs uppercase font-black tracking-widest">Browse Products</span>
               </Link>
             </div>
+          ) : showCheckoutForm ? (
+            <motion.div initial={{opacity:0, scale:0.98}} animate={{opacity:1, scale:1}} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-6 lg:p-8">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-2xl font-black text-gray-900 tracking-tight">Checkout Form</h3>
+                <button onClick={() => setShowCheckoutForm(false)} className="text-sm font-bold text-gray-500 hover:text-gray-900 transition-colors uppercase tracking-widest">← Back to Cart</button>
+              </div>
+              <form onSubmit={executeCheckout} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Full Name</label>
+                    <input required name="fullName" value={formData.fullName} onChange={handleInputChange} type="text" className="w-full px-4 py-3 rounded-xl border border-gray-100 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-50 transition-all font-semibold text-sm" placeholder="John Doe" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Phone Number</label>
+                    <input required name="phone" value={formData.phone} onChange={handleInputChange} type="tel" className="w-full px-4 py-3 rounded-xl border border-gray-100 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-50 transition-all font-semibold text-sm" placeholder="+880..." />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Alternative Phone (Optional)</label>
+                    <input name="altPhone" value={formData.altPhone} onChange={handleInputChange} type="tel" className="w-full px-4 py-3 rounded-xl border border-gray-100 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-50 transition-all font-semibold text-sm" placeholder="+880..." />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">City / Zone</label>
+                    <input required name="city" value={formData.city} onChange={handleInputChange} type="text" className="w-full px-4 py-3 rounded-xl border border-gray-100 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-50 transition-all font-semibold text-sm" placeholder="Dhaka" />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Complete Delivery Address</label>
+                  <textarea required name="address" value={formData.address} onChange={handleInputChange} rows={3} className="w-full px-4 py-3 rounded-xl border border-gray-100 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-50 transition-all font-semibold text-sm resize-none" placeholder="123 Main St, Apartment 4B..." />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1.5">Order Notes (Optional)</label>
+                  <textarea name="notes" value={formData.notes} onChange={handleInputChange} rows={2} className="w-full px-4 py-3 rounded-xl border border-gray-100 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-50 transition-all font-semibold text-sm resize-none" placeholder="Special delivery instructions..." />
+                </div>
+                <div className="pt-6 border-t border-gray-100 flex items-center justify-between">
+                  <p className="font-black text-gray-900 text-xl tracking-tight">Total Price: <span className="text-red-600">৳{cartTotal.toLocaleString()}</span></p>
+                  <button 
+                    type="submit"
+                    disabled={isCheckingOut}
+                    className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-8 py-3.5 rounded-2xl text-xs uppercase font-black tracking-widest transition-all shadow-xl shadow-red-200 disabled:opacity-50"
+                  >
+                    {isCheckingOut ? (
+                      <span className="animate-spin w-4 h-4 border-2 border-white/30 border-t-white rounded-full"></span>
+                    ) : 'Confirm Order'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           ) : (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <div className="divide-y divide-gray-50">
                 {cart.map((item, idx) => (
                   <motion.div
@@ -282,7 +339,7 @@ const MyBookings = () => {
                 ))}
               </div>
               <div className="p-6 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between rounded-b-2xl">
-                <p className="font-black text-gray-900 text-xl tracking-tight">Total Obligation: <span className="text-red-600">৳{cartTotal.toLocaleString()}</span></p>
+                <p className="font-black text-gray-900 text-xl tracking-tight">Total Price: <span className="text-red-600">৳{cartTotal.toLocaleString()}</span></p>
                 <button 
                   onClick={handleCheckout}
                   disabled={isCheckingOut}
@@ -293,7 +350,7 @@ const MyBookings = () => {
                   ) : 'Proceed to Checkout'}
                 </button>
               </div>
-            </div>
+            </motion.div>
           )}
         </div>
       )}
