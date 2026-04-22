@@ -10,6 +10,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -77,7 +78,12 @@ const Navbar = () => {
           {/* Action Icons */}
           <div className="flex items-center gap-3 sm:gap-6">
             {user ? (
-              <div className="relative group/user cursor-pointer">
+              <div 
+                className="relative cursor-pointer"
+                onMouseEnter={() => setIsUserMenuOpen(true)}
+                onMouseLeave={() => setIsUserMenuOpen(false)}
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              >
                 <div className="flex items-center gap-2 hover:text-red-600 transition-colors">
                    <div className="p-1 bg-gray-200/50 rounded-full hover:bg-gray-200 transition-colors flex items-center justify-center w-9 h-9">
                      {user?.photoURL ? (
@@ -91,15 +97,15 @@ const Navbar = () => {
                    </span>
                 </div>
                 {/* Dropdown Menu */}
-                 <div className="absolute right-0 top-full mt-3 w-56 rounded-xl shadow-2xl bg-white ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover/user:opacity-100 group-hover/user:visible transition-all duration-200 z-[100] border border-gray-100">
+                 <div className={`absolute right-0 top-full mt-3 w-56 rounded-xl shadow-2xl bg-white ring-1 ring-black ring-opacity-5 transition-all duration-200 z-[100] border border-gray-100 ${isUserMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
                     <div className="py-1">
                        <div className="px-4 py-2 border-b border-gray-100 mb-1">
                          <p className="text-sm font-medium text-gray-900 truncate">{user.displayName}</p>
                          <p className="text-xs text-gray-500 truncate">{user.email}</p>
                        </div>
-                       <Link to="/dashboard" className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600">Dashboard</Link>
-                       <Link to="/dashboard/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600">Profile</Link>
-                       <button onClick={handleLogout} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 mt-1">Logout</button>
+                       <Link to="/dashboard" onClick={() => setIsUserMenuOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600">Dashboard</Link>
+                       <Link to="/dashboard/profile" onClick={() => setIsUserMenuOpen(false)} className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600">Profile</Link>
+                       <button onClick={() => { setIsUserMenuOpen(false); handleLogout(); }} className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 mt-1">Logout</button>
                     </div>
                  </div>
               </div>
