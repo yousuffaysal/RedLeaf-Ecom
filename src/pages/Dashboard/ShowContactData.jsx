@@ -81,6 +81,9 @@ const ShowContactData = () => {
         const updatedContacts = contacts.filter((contact) => contact._id !== id);
         setContacts(updatedContacts);
         setFilteredContacts(updatedContacts);
+        if (selectedContact?._id === id) {
+          setSelectedContact(null);
+        }
         Swal.fire({
           title: 'Removed!',
           icon: 'success',
@@ -89,8 +92,9 @@ const ShowContactData = () => {
           background: "#fff",
           customClass: { popup: 'rounded-3xl' }
         });
-      } catch {
-        Swal.fire({ title: 'Action Failed', icon: 'error', confirmButtonColor: '#dc2626' });
+      } catch (error) {
+        console.error('Failed to delete contact:', error);
+        Swal.fire({ title: 'Action Failed', text: error?.response?.data?.message || 'Could not delete the message.', icon: 'error', confirmButtonColor: '#dc2626' });
       }
     }
   };
